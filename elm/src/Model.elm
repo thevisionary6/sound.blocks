@@ -1,6 +1,17 @@
 module Model exposing (..)
 
 import Dict exposing (Dict)
+import History exposing (History)
+import Material
+
+
+-- SNAPSHOT (for undo/redo)
+
+
+type alias Snapshot =
+    { bodies : Dict BodyId Body
+    , nextId : BodyId
+    }
 
 
 -- VECTOR MATH
@@ -95,6 +106,17 @@ type alias Body =
     , energy : Float
     , tags : List String
     , a11y : A11yInfo
+    , materialName : String
+    }
+
+
+
+-- CAMERA
+
+
+type alias Camera =
+    { offset : Vec2
+    , zoom : Float
     }
 
 
@@ -156,12 +178,27 @@ type alias Cursor =
     }
 
 
+type Panel
+    = NoPanel
+    | MaterialPanel
+    | PropertiesPanel
+
+
+type PointerAction
+    = Idle
+    | DraggingBody BodyId Vec2
+    | Panning Vec2
+
+
 type alias UiState =
     { mode : UiMode
     , selected : Maybe BodyId
     , hovered : Maybe BodyId
     , drawTool : DrawTool
     , cursor : Cursor
+    , panel : Panel
+    , pointer : PointerAction
+    , activeMaterial : String
     }
 
 
@@ -213,6 +250,8 @@ type alias Model =
     , sim : SimState
     , ui : UiState
     , log : EventLog
+    , camera : Camera
+    , history : History Snapshot
     }
 
 
@@ -220,43 +259,53 @@ type alias Model =
 -- CONSTRUCTORS
 
 
-makeCircle : BodyId -> Vec2 -> Float -> Body
-makeCircle id pos r =
+makeCircle : BodyId -> Vec2 -> Float -> String -> Body
+makeCircle id pos r matName =
+    let
+        mat =
+            Material.getMaterial matName
+    in
     { id = id
     , shape = Circle { r = r }
     , pos = pos
     , vel = vecZero
     , rot = 0
     , angVel = 0
-    , mass = r * r * 0.01
-    , restitution = 0.7
-    , friction = 0.3
+    , mass = mat.density * pi * r * r * 0.001
+    , restitution = mat.restitution
+    , friction = mat.friction
     , energy = 0
     , tags = []
     , a11y =
         { name = "Circle " ++ String.fromInt id
-        , description = "Circle with radius " ++ String.fromInt (round r)
+        , description = mat.name ++ " circle, radius " ++ String.fromInt (round r)
         }
+    , materialName = matName
     }
 
 
-makeRect : BodyId -> Vec2 -> Float -> Float -> Body
-makeRect id pos w h =
+makeRect : BodyId -> Vec2 -> Float -> Float -> String -> Body
+makeRect id pos w h matName =
+    let
+        mat =
+            Material.getMaterial matName
+    in
     { id = id
     , shape = Rect { w = w, h = h }
     , pos = pos
     , vel = vecZero
     , rot = 0
     , angVel = 0
-    , mass = w * h * 0.0001
-    , restitution = 0.6
-    , friction = 0.4
+    , mass = mat.density * w * h * 0.0001
+    , restitution = mat.restitution
+    , friction = mat.friction
     , energy = 0
     , tags = []
     , a11y =
         { name = "Rect " ++ String.fromInt id
-        , description = "Rectangle " ++ String.fromInt (round w) ++ "x" ++ String.fromInt (round h)
+        , description = mat.name ++ " rectangle " ++ String.fromInt (round w) ++ "x" ++ String.fromInt (round h)
         }
+    , materialName = matName
     }
 
 
@@ -302,15 +351,23 @@ initialModel =
         , hovered = Nothing
         , drawTool = CircleTool
         , cursor =
-            { pos = { x = 400, y = 200 }
+            { pos = { x = 400, y = 300 }
             , visible = True
             }
+        , panel = NoPanel
+        , pointer = Idle
+        , activeMaterial = "Rubber"
         }
     , log =
         { announcements =
-            [ "Particle Forge ready. Draw mode. Arrow keys move cursor, Enter places a shape, Tab to switch to Select mode." ]
+            [ "Sound Blocks ready. Draw mode. Arrows move cursor, Enter places shape, Tab to Select mode." ]
         , lastCollision = Nothing
         }
+    , camera =
+        { offset = vecZero
+        , zoom = 1.0
+        }
+    , history = History.empty
     }
 
 
@@ -334,3 +391,10 @@ announce msg model =
             msg :: List.take 19 log.announcements
     in
     { model | log = { log | announcements = newAnnouncements } }
+
+
+screenToWorld : Camera -> Vec2 -> Vec2
+screenToWorld camera screenPos =
+    { x = screenPos.x / camera.zoom + camera.offset.x
+    , y = screenPos.y / camera.zoom + camera.offset.y
+    }

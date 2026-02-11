@@ -14,6 +14,8 @@ sendAudioEvent :
     , a : Int
     , b : Int
     , step : Int
+    , materialA : String
+    , materialB : String
     }
     -> Cmd msg
 sendAudioEvent event =
@@ -26,5 +28,7 @@ sendAudioEvent event =
             , ( "a", Encode.int event.a )
             , ( "b", Encode.int event.b )
             , ( "step", Encode.int event.step )
+            , ( "materialA", Encode.string event.materialA )
+            , ( "materialB", Encode.string event.materialB )
             ]
         )

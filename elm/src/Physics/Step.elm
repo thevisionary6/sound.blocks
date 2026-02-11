@@ -47,8 +47,14 @@ integrate constraints dt body =
             { x = body.pos.x + newVel.x * dt
             , y = body.pos.y + newVel.y * dt
             }
+
+        newRot =
+            body.rot + body.angVel * dt
+
+        newAngVel =
+            body.angVel * constraints.damping
     in
-    { body | pos = newPos, vel = newVel }
+    { body | pos = newPos, vel = newVel, rot = newRot, angVel = newAngVel }
 
 
 applyBoundary : BoundaryMode -> Bounds -> Body -> Body
@@ -74,7 +80,7 @@ boundaryBounce bounds body =
             clampAxisBounce r bounds.width body.pos.x body.vel.x
 
         ( py, vy ) =
-            clampAxisBounce r bounds.height body.pos.y body.vel.y
+            bounceFloor r bounds.height body.pos.y body.vel.y
     in
     { body
         | pos = { x = px, y = py }
@@ -94,6 +100,15 @@ clampAxisBounce radius limit pos vel =
         ( pos, vel )
 
 
+bounceFloor : Float -> Float -> Float -> Float -> ( Float, Float )
+bounceFloor radius floorY pos vel =
+    if pos + radius > floorY then
+        ( floorY - radius, -(abs vel) * 0.7 )
+
+    else
+        ( pos, vel )
+
+
 boundaryWrap : Bounds -> Body -> Body
 boundaryWrap bounds body =
     let
@@ -104,7 +119,11 @@ boundaryWrap bounds body =
             wrapAxis r bounds.width body.pos.x
 
         wy =
-            wrapAxis r bounds.height body.pos.y
+            if body.pos.y - r > bounds.height then
+                -r
+
+            else
+                body.pos.y
     in
     { body | pos = { x = wx, y = wy } }
 
@@ -131,7 +150,7 @@ boundaryClamp bounds body =
             clamp r (bounds.width - r) body.pos.x
 
         cy =
-            clamp r (bounds.height - r) body.pos.y
+            min (bounds.height - r) body.pos.y
 
         vx =
             if body.pos.x - r < 0 || body.pos.x + r > bounds.width then
@@ -141,7 +160,7 @@ boundaryClamp bounds body =
                 body.vel.x
 
         vy =
-            if body.pos.y - r < 0 || body.pos.y + r > bounds.height then
+            if body.pos.y + r > bounds.height then
                 0
 
             else

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Particle Forge</title>
+  <title>Sound Blocks</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
@@ -49,13 +49,17 @@
       });
     }
 
-    // Prevent default on arrow keys and Tab when Elm is handling them
+    // Prevent default on keys that Elm handles
     document.addEventListener('keydown', function(e) {
       var handled = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', ' '];
       if (handled.indexOf(e.key) !== -1) {
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
           e.preventDefault();
         }
+      }
+      // Prevent browser undo/redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'y')) {
+        e.preventDefault();
       }
     });
   </script>
