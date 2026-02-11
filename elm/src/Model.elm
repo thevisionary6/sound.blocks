@@ -3,6 +3,7 @@ module Model exposing (..)
 import Dict exposing (Dict)
 import History exposing (History)
 import Material
+import Mixer exposing (MixerState)
 
 
 -- SNAPSHOT (for undo/redo)
@@ -214,6 +215,7 @@ type Panel
     | MaterialPanel
     | PropertiesPanel
     | ConstraintPanel
+    | MixerPanel
 
 
 type PointerAction
@@ -287,6 +289,7 @@ type alias Model =
     , log : EventLog
     , camera : Camera
     , history : History Snapshot
+    , mixer : MixerState
     }
 
 
@@ -406,6 +409,7 @@ initialModel =
         , zoom = 1.0
         }
     , history = History.empty
+    , mixer = Mixer.defaultMixer
     }
 
 

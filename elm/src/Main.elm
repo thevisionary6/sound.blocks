@@ -9,10 +9,12 @@ import Json.Decode as Decode
 import Model exposing (..)
 import Update exposing (Msg(..), subscriptions, update)
 import View.A11y exposing (viewAnnouncement, viewEventLog)
+import Mixer exposing (MixerMsg)
 import View.Controls exposing (viewControls)
 import View.Inspector exposing (viewInspector)
 import View.ConstraintPanel exposing (viewConstraintPanel)
 import View.MaterialPanel exposing (viewMaterialPanel)
+import View.MixerPanel exposing (viewMixerPanel)
 import View.PropertiesPanel exposing (viewPropertiesPanel)
 import View.Svg exposing (viewWorld)
 
@@ -131,3 +133,9 @@ viewPanelOverlay model =
                 DeleteLink
                 CancelLinkCreation
                 (TogglePanel ConstraintPanel)
+
+        MixerPanel ->
+            viewMixerPanel
+                model.mixer
+                MixerUpdate
+                (TogglePanel MixerPanel)

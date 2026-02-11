@@ -1,6 +1,6 @@
 // audio.js — WebAudio DSP integration for Sound Blocks
-// Consumes AudioEvent messages from Elm ports and produces collision sounds.
-// Material-aware: uses SoundProfile data to vary timbre per material pair.
+// Consumes AudioEvent and MixerCommand messages from Elm ports.
+// Material-aware collision sounds + mixer with reverb, delay, and level meter.
 
 (function () {
   "use strict";
@@ -8,6 +8,30 @@
   var ctx = null;
   var masterGain = null;
   var initialized = false;
+
+  // Effects chain nodes
+  var dryGain = null;       // pre-effects dry signal
+  var reverbNode = null;    // ConvolverNode
+  var reverbGain = null;    // reverb wet mix
+  var reverbDry = null;     // reverb dry mix
+  var delayNode = null;     // DelayNode
+  var delayFeedback = null; // feedback GainNode
+  var delayGain = null;     // delay wet mix
+  var delayDry = null;      // delay dry mix
+  var analyser = null;      // AnalyserNode for meter
+
+  // Current mixer state
+  var mixerState = {
+    volume: 0.7,
+    muted: false,
+    reverbEnabled: false,
+    reverbDecay: 0.5,
+    reverbMix: 0.3,
+    delayEnabled: false,
+    delayTime: 0.25,
+    delayFeedback: 0.4,
+    delayMix: 0.3
+  };
 
   // Material sound profiles (matches Material.elm definitions)
   var materialProfiles = {
@@ -25,21 +49,156 @@
     return materialProfiles[name] || defaultProfile;
   }
 
+  // Generate impulse response buffer for convolution reverb
+  function createReverbIR(decay) {
+    var sampleRate = ctx.sampleRate;
+    var length = Math.floor(sampleRate * Math.min(decay, 3.0));
+    if (length < 1) length = 1;
+    var buffer = ctx.createBuffer(2, length, sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var data = buffer.getChannelData(ch);
+      for (var i = 0; i < length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
+      }
+    }
+    return buffer;
+  }
+
   function initAudio() {
     if (initialized) return true;
     try {
       var AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return false;
       ctx = new AudioCtx();
+
+      // Master output gain
       masterGain = ctx.createGain();
-      masterGain.gain.value = 0.3;
+      masterGain.gain.value = mixerState.volume;
       masterGain.connect(ctx.destination);
+
+      // Analyser for level meter
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      masterGain.connect(analyser);
+
+      // Input node — all sounds connect here
+      dryGain = ctx.createGain();
+      dryGain.gain.value = 1.0;
+
+      // Reverb chain
+      reverbNode = ctx.createConvolver();
+      reverbNode.buffer = createReverbIR(mixerState.reverbDecay);
+      reverbGain = ctx.createGain();
+      reverbGain.gain.value = 0;
+      reverbDry = ctx.createGain();
+      reverbDry.gain.value = 1.0;
+
+      dryGain.connect(reverbNode);
+      reverbNode.connect(reverbGain);
+      dryGain.connect(reverbDry);
+
+      // Delay chain
+      delayNode = ctx.createDelay(2.0);
+      delayNode.delayTime.value = mixerState.delayTime;
+      delayFeedback = ctx.createGain();
+      delayFeedback.gain.value = 0;
+      delayGain = ctx.createGain();
+      delayGain.gain.value = 0;
+      delayDry = ctx.createGain();
+      delayDry.gain.value = 1.0;
+
+      // Reverb output -> delay input
+      reverbGain.connect(delayNode);
+      reverbDry.connect(delayNode);
+      delayNode.connect(delayFeedback);
+      delayFeedback.connect(delayNode);
+      delayNode.connect(delayGain);
+
+      // Dry path bypasses delay
+      reverbGain.connect(delayDry);
+      reverbDry.connect(delayDry);
+
+      // Final mix to master
+      delayGain.connect(masterGain);
+      delayDry.connect(masterGain);
+
+      // Apply initial mixer state
+      applyMixerState();
+
       initialized = true;
+
+      // Start meter animation
+      requestAnimationFrame(updateMeter);
+
       return true;
     } catch (e) {
       console.warn("Sound Blocks: WebAudio init failed:", e);
       return false;
     }
+  }
+
+  // Apply mixer state to audio nodes
+  function applyMixerState() {
+    if (!ctx) return;
+    var now = ctx.currentTime;
+
+    // Master volume / mute
+    var vol = mixerState.muted ? 0 : mixerState.volume;
+    masterGain.gain.setTargetAtTime(vol, now, 0.02);
+
+    // Reverb
+    if (mixerState.reverbEnabled) {
+      reverbGain.gain.setTargetAtTime(mixerState.reverbMix, now, 0.02);
+      reverbDry.gain.setTargetAtTime(1.0 - mixerState.reverbMix * 0.5, now, 0.02);
+    } else {
+      reverbGain.gain.setTargetAtTime(0, now, 0.02);
+      reverbDry.gain.setTargetAtTime(1.0, now, 0.02);
+    }
+
+    // Delay
+    if (mixerState.delayEnabled) {
+      delayNode.delayTime.setTargetAtTime(mixerState.delayTime, now, 0.02);
+      delayFeedback.gain.setTargetAtTime(mixerState.delayFeedback, now, 0.02);
+      delayGain.gain.setTargetAtTime(mixerState.delayMix, now, 0.02);
+      delayDry.gain.setTargetAtTime(1.0 - mixerState.delayMix * 0.5, now, 0.02);
+    } else {
+      delayFeedback.gain.setTargetAtTime(0, now, 0.02);
+      delayGain.gain.setTargetAtTime(0, now, 0.02);
+      delayDry.gain.setTargetAtTime(1.0, now, 0.02);
+    }
+  }
+
+  // Update the reverb IR when decay changes
+  function updateReverbIR() {
+    if (!ctx || !reverbNode) return;
+    try {
+      reverbNode.buffer = createReverbIR(mixerState.reverbDecay);
+    } catch (e) {
+      // ConvolverNode may throw if buffer is invalid
+    }
+  }
+
+  // Level meter: animate #audio-meter-bar width
+  function updateMeter() {
+    if (!analyser) {
+      requestAnimationFrame(updateMeter);
+      return;
+    }
+    var data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteTimeDomainData(data);
+
+    var peak = 0;
+    for (var i = 0; i < data.length; i++) {
+      var sample = Math.abs(data[i] - 128) / 128;
+      if (sample > peak) peak = sample;
+    }
+
+    var pct = Math.min(100, Math.round(peak * 200));
+    var bar = document.getElementById("audio-meter-bar");
+    if (bar) {
+      bar.style.width = pct + "%";
+    }
+    requestAnimationFrame(updateMeter);
   }
 
   // Resume audio context on first user interaction (browser autoplay policy)
@@ -97,10 +256,10 @@
     var panner = ctx.createStereoPanner();
     panner.pan.setValueAtTime(pan, now);
 
-    // Connect chain: osc -> env -> panner -> master
+    // Connect chain: osc -> env -> panner -> dryGain (effects input)
     osc.connect(env);
     env.connect(panner);
-    panner.connect(masterGain);
+    panner.connect(dryGain);
 
     osc.start(now);
     osc.stop(now + decay + 0.05);
@@ -136,7 +295,7 @@
 
     source.connect(env);
     env.connect(panner);
-    panner.connect(masterGain);
+    panner.connect(dryGain);
 
     source.start(startTime);
   }
@@ -157,7 +316,7 @@
     env.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
     osc.connect(env);
-    env.connect(masterGain);
+    env.connect(dryGain);
     osc.start(now);
     osc.stop(now + 0.08);
   }
@@ -177,9 +336,35 @@
     }
   }
 
+  // Handle mixer commands from Elm ports
+  function handleMixerCommand(cmd) {
+    if (!cmd) return;
+    if (!initAudio()) return;
+
+    var prevDecay = mixerState.reverbDecay;
+
+    mixerState.volume = cmd.volume;
+    mixerState.muted = cmd.muted;
+    mixerState.reverbEnabled = cmd.reverbEnabled;
+    mixerState.reverbDecay = cmd.reverbDecay;
+    mixerState.reverbMix = cmd.reverbMix;
+    mixerState.delayEnabled = cmd.delayEnabled;
+    mixerState.delayTime = cmd.delayTime;
+    mixerState.delayFeedback = cmd.delayFeedback;
+    mixerState.delayMix = cmd.delayMix;
+
+    // Regenerate reverb IR if decay changed significantly
+    if (Math.abs(prevDecay - mixerState.reverbDecay) > 0.05) {
+      updateReverbIR();
+    }
+
+    applyMixerState();
+  }
+
   // Expose for Elm port subscription
   window.ParticleForgeAudio = {
     handleAudioEvent: handleAudioEvent,
+    handleMixerCommand: handleMixerCommand,
     initAudio: initAudio
   };
 })();

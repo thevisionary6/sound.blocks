@@ -5,6 +5,7 @@ import Dict
 import History
 import Json.Decode as Decode
 import Material
+import Mixer exposing (MixerMsg(..), updateMixer)
 import Model exposing (..)
 import Physics.Step
 import Ports
@@ -37,6 +38,7 @@ type Msg
     | StartLinkCreation LinkKind
     | CancelLinkCreation
     | DeleteLink LinkId
+    | MixerUpdate MixerMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -327,6 +329,15 @@ update msg model =
             ( announce "Constraint deleted."
                 { snapped | links = Dict.remove linkId snapped.links }
             , Cmd.none
+            )
+
+        MixerUpdate mixerMsg ->
+            let
+                newMixer =
+                    updateMixer mixerMsg model.mixer
+            in
+            ( { model | mixer = newMixer }
+            , sendMixerState newMixer
             )
 
 
@@ -700,6 +711,9 @@ handleNonModifierKey key model =
 
         "c" ->
             update (TogglePanel ConstraintPanel) model
+
+        "x" ->
+            update (TogglePanel MixerPanel) model
 
         "+" ->
             update ZoomIn model
@@ -1094,6 +1108,26 @@ collisionToAudioCmd bodies event =
         , step = event.timeStep
         , materialA = matA
         , materialB = matB
+        }
+
+
+
+-- MIXER PORT HELPER
+
+
+sendMixerState : Mixer.MixerState -> Cmd Msg
+sendMixerState mixer =
+    Ports.sendMixerCommand
+        { command = "update"
+        , volume = mixer.masterVolume
+        , muted = mixer.masterMuted
+        , reverbEnabled = mixer.reverbEnabled
+        , reverbDecay = mixer.reverbDecay
+        , reverbMix = mixer.reverbMix
+        , delayEnabled = mixer.delayEnabled
+        , delayTime = mixer.delayTime
+        , delayFeedback = mixer.delayFeedback
+        , delayMix = mixer.delayMix
         }
 
 

@@ -330,7 +330,7 @@ Exit criteria:
 
 
 ========================================================================
-4. MILESTONE 3 — MIXER v1
+4. MILESTONE 3 — MIXER v1                                     [COMPLETE]
 ========================================================================
 
 Goal: Audio mixer panel with master meter, 1-2 global effects, and

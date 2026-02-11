@@ -61,6 +61,9 @@ viewControls model msgs =
         , toolButton "Links (C)"
             (model.ui.panel == ConstraintPanel)
             (msgs.togglePanel ConstraintPanel)
+        , toolButton "Mixer (X)"
+            (model.ui.panel == MixerPanel)
+            (msgs.togglePanel MixerPanel)
         , sep
         , viewBoundaryPicker model.constraints.boundaryMode msgs.setBoundaryMode
         , viewCollisionPicker model.constraints.collisionMode msgs.setCollisionMode
