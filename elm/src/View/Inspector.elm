@@ -3,6 +3,7 @@ module View.Inspector exposing (viewInspector)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Material
 import Model exposing (..)
 
 
@@ -13,7 +14,7 @@ viewInspector model =
             case model.ui.selected of
                 Nothing ->
                     [ span [ style "color" "#7a7a8e" ]
-                        [ text "No body selected. Use Tab in Select mode to cycle through bodies." ]
+                        [ text "No body selected. Tab in Select mode to cycle." ]
                     ]
 
                 Just id ->
@@ -43,9 +44,14 @@ viewInspector model =
 
 viewBodyDetails : Body -> List (Html msg)
 viewBodyDetails body =
+    let
+        mat =
+            Material.getMaterial body.materialName
+    in
     [ div [ style "margin-bottom" "4px", style "color" "#ff6b3d" ]
         [ text (bodyLabel body) ]
     , viewProp "Shape" (shapeDescription body.shape)
+    , viewProp "Material" mat.name
     , viewProp "Position"
         (String.fromInt (round body.pos.x)
             ++ ", "
@@ -58,6 +64,8 @@ viewBodyDetails body =
         )
     , viewProp "Mass" (floatToStr 2 body.mass)
     , viewProp "Energy" (floatToStr 1 body.energy)
+    , viewProp "Friction" (floatToStr 2 body.friction)
+    , viewProp "Bounce" (floatToStr 2 body.restitution)
     , if List.isEmpty body.tags then
         text ""
 

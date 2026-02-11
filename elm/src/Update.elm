@@ -2,20 +2,35 @@ module Update exposing (Msg(..), subscriptions, update)
 
 import Browser.Events
 import Dict
+import History
 import Json.Decode as Decode
+import Material
 import Model exposing (..)
 import Physics.Step
 import Ports
 import Time
+import View.PropertiesPanel exposing (PropertyChange(..))
+import View.Svg
 
 
 type Msg
     = Tick Time.Posix
-    | KeyDown String
+    | KeyDown String Bool Bool
     | ToggleRun
     | ToggleMode
     | Clear
-    | ClickBody BodyId
+    | SvgMsg View.Svg.Msg
+    | PointerMove Float Float
+    | PointerUp
+    | WheelZoom Float
+    | TogglePanel Panel
+    | SelectMaterial String
+    | AdjustProperty PropertyChange
+    | Undo
+    | Redo
+    | ZoomIn
+    | ZoomOut
+    | ZoomReset
     | SetDrawTool DrawTool
     | SetBoundaryMode BoundaryMode
     | SetCollisionMode CollisionMode
@@ -34,7 +49,7 @@ update msg model =
                         Physics.Step.step model.constraints model.bounds sim.stepCount model.bodies
 
                     cmds =
-                        List.map collisionToAudioCmd result.events
+                        List.map (collisionToAudioCmd model.bodies) result.events
                 in
                 ( { model
                     | bodies = result.bodies
@@ -84,32 +99,136 @@ update msg model =
             )
 
         Clear ->
+            let
+                snapped =
+                    pushSnapshot model
+            in
             ( announce "All bodies cleared."
-                { model
+                { snapped
                     | bodies = Dict.empty
                     , nextId = 1
-                    , ui = setSelected Nothing model.ui
+                    , ui = setSelected Nothing snapped.ui
                 }
             , Cmd.none
             )
 
-        ClickBody id ->
+        SvgMsg svgMsg ->
+            handleSvgMsg svgMsg model
+
+        PointerMove cx cy ->
+            handlePointerMove cx cy model
+
+        PointerUp ->
+            let
+                ui =
+                    model.ui
+            in
+            ( { model | ui = { ui | pointer = Idle } }, Cmd.none )
+
+        WheelZoom deltaY ->
+            let
+                camera =
+                    model.camera
+
+                factor =
+                    if deltaY < 0 then
+                        1.1
+
+                    else
+                        1 / 1.1
+
+                newZoom =
+                    clamp 0.25 4.0 (camera.zoom * factor)
+            in
+            ( { model | camera = { camera | zoom = newZoom } }, Cmd.none )
+
+        TogglePanel panel ->
             let
                 ui =
                     model.ui
 
-                bodyName =
-                    case Dict.get id model.bodies of
-                        Just body ->
-                            bodyLabel body ++ " selected."
+                newPanel =
+                    if ui.panel == panel then
+                        NoPanel
 
-                        Nothing ->
-                            "Body selected."
+                    else
+                        panel
             in
-            ( announce bodyName
-                { model | ui = { ui | selected = Just id, mode = SelectMode } }
+            ( { model | ui = { ui | panel = newPanel } }, Cmd.none )
+
+        SelectMaterial matName ->
+            let
+                ui =
+                    model.ui
+            in
+            ( announce (matName ++ " material selected.")
+                { model | ui = { ui | activeMaterial = matName } }
             , Cmd.none
             )
+
+        AdjustProperty change ->
+            ( applyPropertyChange change model, Cmd.none )
+
+        Undo ->
+            let
+                current =
+                    makeSnapshot model
+            in
+            case History.undo current model.history of
+                Just ( snap, newHistory ) ->
+                    ( announce "Undo."
+                        { model
+                            | bodies = snap.bodies
+                            , nextId = snap.nextId
+                            , history = newHistory
+                        }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Redo ->
+            let
+                current =
+                    makeSnapshot model
+            in
+            case History.redo current model.history of
+                Just ( snap, newHistory ) ->
+                    ( announce "Redo."
+                        { model
+                            | bodies = snap.bodies
+                            , nextId = snap.nextId
+                            , history = newHistory
+                        }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        ZoomIn ->
+            let
+                camera =
+                    model.camera
+
+                newZoom =
+                    clamp 0.25 4.0 (camera.zoom * 1.15)
+            in
+            ( { model | camera = { camera | zoom = newZoom } }, Cmd.none )
+
+        ZoomOut ->
+            let
+                camera =
+                    model.camera
+
+                newZoom =
+                    clamp 0.25 4.0 (camera.zoom / 1.15)
+            in
+            ( { model | camera = { camera | zoom = newZoom } }, Cmd.none )
+
+        ZoomReset ->
+            ( { model | camera = { offset = vecZero, zoom = 1.0 } }, Cmd.none )
 
         SetDrawTool tool ->
             let
@@ -168,38 +287,238 @@ update msg model =
             , Cmd.none
             )
 
-        KeyDown key ->
-            handleKey key model
+        KeyDown key ctrl shift ->
+            handleKey key ctrl shift model
 
 
-setSimRunning : Bool -> SimState -> SimState
-setSimRunning running sim =
-    { sim | running = running }
+
+-- SVG MSG HANDLING
 
 
-setSelected : Maybe BodyId -> UiState -> UiState
-setSelected sel ui =
-    { ui | selected = sel }
+handleSvgMsg : View.Svg.Msg -> Model -> ( Model, Cmd Msg )
+handleSvgMsg svgMsg model =
+    case svgMsg of
+        View.Svg.ClickBody id ->
+            let
+                ui =
+                    model.ui
+
+                bodyName =
+                    case Dict.get id model.bodies of
+                        Just body ->
+                            bodyLabel body ++ " selected."
+
+                        Nothing ->
+                            "Body selected."
+            in
+            ( announce bodyName
+                { model | ui = { ui | selected = Just id, mode = SelectMode } }
+            , Cmd.none
+            )
+
+        View.Svg.PointerDownOnBody id cx cy ->
+            let
+                ui =
+                    model.ui
+
+                snapped =
+                    pushSnapshot model
+            in
+            ( { snapped
+                | ui =
+                    { ui
+                        | pointer = DraggingBody id { x = cx, y = cy }
+                        , selected = Just id
+                    }
+              }
+            , Cmd.none
+            )
+
+        View.Svg.PointerDownOnBg ox oy cx cy ->
+            case model.ui.mode of
+                DrawMode ->
+                    let
+                        worldPos =
+                            screenToWorld model.camera { x = ox, y = oy }
+                    in
+                    ( placeShapeAt worldPos model, Cmd.none )
+
+                _ ->
+                    let
+                        ui =
+                            model.ui
+                    in
+                    ( { model | ui = { ui | pointer = Panning { x = cx, y = cy } } }
+                    , Cmd.none
+                    )
+
+        View.Svg.NoOp ->
+            ( model, Cmd.none )
 
 
-modeAnnouncement : UiMode -> String
-modeAnnouncement mode =
-    case mode of
-        DrawMode ->
-            "Draw mode. Arrow keys move cursor, Enter places a shape."
 
-        SelectMode ->
-            "Select mode. Tab through bodies, arrow keys nudge selected body."
-
-        RunMode ->
-            "Run mode. Simulation running, press P to pause."
-
-        InspectMode ->
-            "Inspect mode. Tab through bodies to view details."
+-- POINTER HANDLING
 
 
-handleKey : String -> Model -> ( Model, Cmd Msg )
-handleKey key model =
+handlePointerMove : Float -> Float -> Model -> ( Model, Cmd Msg )
+handlePointerMove cx cy model =
+    let
+        ui =
+            model.ui
+    in
+    case ui.pointer of
+        Idle ->
+            ( model, Cmd.none )
+
+        DraggingBody id lastPos ->
+            let
+                dx =
+                    (cx - lastPos.x) / model.camera.zoom
+
+                dy =
+                    (cy - lastPos.y) / model.camera.zoom
+
+                newBodies =
+                    Dict.update id
+                        (Maybe.map
+                            (\body ->
+                                { body
+                                    | pos = { x = body.pos.x + dx, y = body.pos.y + dy }
+                                    , vel = vecZero
+                                }
+                            )
+                        )
+                        model.bodies
+            in
+            ( { model
+                | bodies = newBodies
+                , ui = { ui | pointer = DraggingBody id { x = cx, y = cy } }
+              }
+            , Cmd.none
+            )
+
+        Panning lastPos ->
+            let
+                dx =
+                    (cx - lastPos.x) / model.camera.zoom
+
+                dy =
+                    (cy - lastPos.y) / model.camera.zoom
+
+                camera =
+                    model.camera
+
+                newOffset =
+                    { x = camera.offset.x - dx
+                    , y = camera.offset.y - dy
+                    }
+            in
+            ( { model
+                | camera = { camera | offset = newOffset }
+                , ui = { ui | pointer = Panning { x = cx, y = cy } }
+              }
+            , Cmd.none
+            )
+
+
+
+-- HISTORY HELPERS
+
+
+makeSnapshot : Model -> Snapshot
+makeSnapshot model =
+    { bodies = model.bodies
+    , nextId = model.nextId
+    }
+
+
+pushSnapshot : Model -> Model
+pushSnapshot model =
+    { model | history = History.push (makeSnapshot model) model.history }
+
+
+
+-- PROPERTY CHANGES
+
+
+applyPropertyChange : PropertyChange -> Model -> Model
+applyPropertyChange change model =
+    case model.ui.selected of
+        Nothing ->
+            model
+
+        Just id ->
+            let
+                newBodies =
+                    Dict.update id (Maybe.map (applyChange change)) model.bodies
+            in
+            pushSnapshot { model | bodies = newBodies }
+
+
+applyChange : PropertyChange -> Body -> Body
+applyChange change body =
+    case change of
+        AdjPosX d ->
+            { body | pos = { x = body.pos.x + d, y = body.pos.y } }
+
+        AdjPosY d ->
+            { body | pos = { x = body.pos.x, y = body.pos.y + d } }
+
+        AdjRadius d ->
+            case body.shape of
+                Circle { r } ->
+                    { body | shape = Circle { r = max 5 (r + d) } }
+
+                _ ->
+                    body
+
+        AdjWidth d ->
+            case body.shape of
+                Rect { w, h } ->
+                    { body | shape = Rect { w = max 10 (w + d), h = h } }
+
+                _ ->
+                    body
+
+        AdjHeight d ->
+            case body.shape of
+                Rect { w, h } ->
+                    { body | shape = Rect { w = w, h = max 10 (h + d) } }
+
+                _ ->
+                    body
+
+        AdjMass d ->
+            { body | mass = max 0.1 (body.mass + d) }
+
+        AdjFriction d ->
+            { body | friction = clamp 0 1 (body.friction + d) }
+
+        AdjRestitution d ->
+            { body | restitution = clamp 0 1 (body.restitution + d) }
+
+
+
+-- KEY HANDLING
+
+
+handleKey : String -> Bool -> Bool -> Model -> ( Model, Cmd Msg )
+handleKey key ctrl shift model =
+    if ctrl && key == "z" && not shift then
+        update Undo model
+
+    else if ctrl && key == "z" && shift then
+        update Redo model
+
+    else if ctrl && key == "y" then
+        update Redo model
+
+    else
+        handleNonModifierKey key model
+
+
+handleNonModifierKey : String -> Model -> ( Model, Cmd Msg )
+handleNonModifierKey key model =
     case key of
         "p" ->
             update ToggleRun model
@@ -233,6 +552,21 @@ handleKey key model =
 
         "2" ->
             update (SetDrawTool RectTool) model
+
+        "m" ->
+            update (TogglePanel MaterialPanel) model
+
+        "+" ->
+            update ZoomIn model
+
+        "=" ->
+            update ZoomIn model
+
+        "-" ->
+            update ZoomOut model
+
+        "0" ->
+            update ZoomReset model
 
         _ ->
             case model.ui.mode of
@@ -310,10 +644,10 @@ handleDrawKey key model =
             }
 
         "Enter" ->
-            placeShape model
+            placeShapeAt model.ui.cursor.pos model
 
         " " ->
-            placeShape model
+            placeShapeAt model.ui.cursor.pos model
 
         "Tab" ->
             announce "Select mode. Tab through bodies, arrow keys nudge selected body."
@@ -326,25 +660,28 @@ handleDrawKey key model =
             model
 
 
-placeShape : Model -> Model
-placeShape model =
+placeShapeAt : Vec2 -> Model -> Model
+placeShapeAt pos model =
     let
         ui =
             model.ui
 
-        pos =
-            ui.cursor.pos
+        matName =
+            ui.activeMaterial
 
-        ( newBody, shapeLabel ) =
+        newBody =
             case ui.drawTool of
                 CircleTool ->
-                    ( makeCircle model.nextId pos 20, "Circle" )
+                    makeCircle model.nextId pos 20 matName
 
                 RectTool ->
-                    ( makeRect model.nextId pos 40 30, "Rect" )
+                    makeRect model.nextId pos 40 30 matName
 
         newBodies =
             Dict.insert model.nextId newBody model.bodies
+
+        snapped =
+            pushSnapshot model
     in
     announce
         (bodyLabel newBody
@@ -356,7 +693,7 @@ placeShape model =
             ++ String.fromInt (Dict.size newBodies)
             ++ " bodies total."
         )
-        { model
+        { snapped
             | bodies = newBodies
             , nextId = model.nextId + 1
         }
@@ -431,12 +768,15 @@ handleSelectKey key model =
                                 |> Maybe.map bodyLabel
                                 |> Maybe.withDefault ("Body " ++ String.fromInt id)
 
+                        snapped =
+                            pushSnapshot model
+
                         newBodies =
-                            Dict.remove id model.bodies
+                            Dict.remove id snapped.bodies
                     in
                     announce
                         (name ++ " deleted. " ++ String.fromInt (Dict.size newBodies) ++ " bodies remaining.")
-                        { model
+                        { snapped
                             | bodies = newBodies
                             , ui = { ui | selected = Nothing }
                         }
@@ -498,6 +838,40 @@ nudgeSelected impulse model =
             announce "No body selected to nudge." model
 
 
+
+-- HELPERS
+
+
+setSimRunning : Bool -> SimState -> SimState
+setSimRunning running sim =
+    { sim | running = running }
+
+
+setSelected : Maybe BodyId -> UiState -> UiState
+setSelected sel ui =
+    { ui | selected = sel }
+
+
+modeAnnouncement : UiMode -> String
+modeAnnouncement mode =
+    case mode of
+        DrawMode ->
+            "Draw mode. Arrow keys move cursor, Enter places a shape."
+
+        SelectMode ->
+            "Select mode. Tab through bodies, arrow keys nudge selected body."
+
+        RunMode ->
+            "Run mode. Simulation running, press P to pause."
+
+        InspectMode ->
+            "Inspect mode. Tab through bodies to view details."
+
+
+
+-- EVENT LOG
+
+
 updateLogWithEvents : List CollisionEvent -> EventLog -> EventLog
 updateLogWithEvents events log =
     case events of
@@ -533,8 +907,8 @@ collisionAnnouncement event =
         ++ ")"
 
 
-collisionToAudioCmd : CollisionEvent -> Cmd Msg
-collisionToAudioCmd event =
+collisionToAudioCmd : Dict.Dict BodyId Body -> CollisionEvent -> Cmd Msg
+collisionToAudioCmd bodies event =
     let
         bId =
             case event.b of
@@ -543,6 +917,21 @@ collisionToAudioCmd event =
 
                 BoundaryTarget ->
                     -1
+
+        matA =
+            Dict.get event.a bodies
+                |> Maybe.map .materialName
+                |> Maybe.withDefault "Rubber"
+
+        matB =
+            case event.b of
+                BodyTarget id ->
+                    Dict.get id bodies
+                        |> Maybe.map .materialName
+                        |> Maybe.withDefault "Rubber"
+
+                BoundaryTarget ->
+                    "Stone"
     in
     Ports.sendAudioEvent
         { eventType = "collision"
@@ -552,7 +941,13 @@ collisionToAudioCmd event =
         , a = event.a
         , b = bId
         , step = event.timeStep
+        , materialA = matA
+        , materialB = matB
         }
+
+
+
+-- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
@@ -563,8 +958,35 @@ subscriptions model =
 
           else
             Sub.none
-        , Browser.Events.onKeyDown
-            (Decode.field "key" Decode.string
-                |> Decode.map KeyDown
-            )
+        , Browser.Events.onKeyDown keyDecoder
+        , case model.ui.pointer of
+            Idle ->
+                Sub.none
+
+            _ ->
+                Sub.batch
+                    [ Browser.Events.onMouseMove
+                        (Decode.map2 PointerMove
+                            (Decode.field "clientX" Decode.float)
+                            (Decode.field "clientY" Decode.float)
+                        )
+                    , Browser.Events.onMouseUp
+                        (Decode.succeed PointerUp)
+                    ]
         ]
+
+
+keyDecoder : Decode.Decoder Msg
+keyDecoder =
+    Decode.map3 KeyDown
+        (Decode.field "key" Decode.string)
+        (Decode.oneOf
+            [ Decode.field "ctrlKey" Decode.bool
+            , Decode.succeed False
+            ]
+        )
+        (Decode.oneOf
+            [ Decode.field "shiftKey" Decode.bool
+            , Decode.succeed False
+            ]
+        )

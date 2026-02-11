@@ -98,7 +98,6 @@ resolveBodyPair trackEnergy stepCount a b result =
                 vecDot relVel normal
         in
         if dvn > 0 then
-            -- Moving apart, just separate
             let
                 newBodies =
                     result.bodies
@@ -127,16 +126,80 @@ resolveBodyPair trackEnergy stepCount a b result =
                 newVelB =
                     vecSub b.vel impulseVecB
 
-                collisionEnergy =
-                    abs dvn * (a.mass * b.mass / totalMass)
+                -- Friction: tangential impulse
+                tangentVel =
+                    vecSub relVel (vecScale dvn normal)
 
+                tangentLen =
+                    vecLen tangentVel
+
+                ( fricVelA, fricVelB ) =
+                    if tangentLen > 0.01 then
+                        let
+                            tangent =
+                                vecScale (1 / tangentLen) tangentVel
+
+                            mu =
+                                min a.friction b.friction
+
+                            jt =
+                                min (mu * abs j) (tangentLen * (a.mass * b.mass / totalMass))
+
+                            fricA =
+                                vecSub newVelA (vecScale (jt / a.mass) tangent)
+
+                            fricB =
+                                vecAdd newVelB (vecScale (jt / b.mass) tangent)
+                        in
+                        ( fricA, fricB )
+
+                    else
+                        ( newVelA, newVelB )
+
+                -- Torque from off-center collision
                 contactPoint =
                     vecAdd a.pos (vecScale (bodyRadius a) normal)
+
+                rA =
+                    vecSub contactPoint a.pos
+
+                rB =
+                    vecSub contactPoint b.pos
+
+                crossA =
+                    rA.x * impulseVecA.y - rA.y * impulseVecA.x
+
+                crossB =
+                    rB.x * impulseVecB.y - rB.y * impulseVecB.x
+
+                inertiaA =
+                    bodyInertia a
+
+                inertiaB =
+                    bodyInertia b
+
+                newAngVelA =
+                    if inertiaA > 0 then
+                        a.angVel + crossA / inertiaA
+
+                    else
+                        a.angVel
+
+                newAngVelB =
+                    if inertiaB > 0 then
+                        b.angVel - crossB / inertiaB
+
+                    else
+                        b.angVel
+
+                collisionEnergy =
+                    abs dvn * (a.mass * b.mass / totalMass)
 
                 newA =
                     { a
                         | pos = newPosA
-                        , vel = newVelA
+                        , vel = fricVelA
+                        , angVel = newAngVelA
                         , energy =
                             if trackEnergy then
                                 a.energy + collisionEnergy * 0.5
@@ -148,7 +211,8 @@ resolveBodyPair trackEnergy stepCount a b result =
                 newB =
                     { b
                         | pos = newPosB
-                        , vel = newVelB
+                        , vel = fricVelB
+                        , angVel = newAngVelB
                         , energy =
                             if trackEnergy then
                                 b.energy + collisionEnergy * 0.5
@@ -194,3 +258,13 @@ shapeMinDist a b =
 
         ( Rect ra, Rect rb ) ->
             (min ra.w ra.h + min rb.w rb.h) / 2
+
+
+bodyInertia : Body -> Float
+bodyInertia body =
+    case body.shape of
+        Circle { r } ->
+            0.5 * body.mass * r * r
+
+        Rect { w, h } ->
+            body.mass * (w * w + h * h) / 12
