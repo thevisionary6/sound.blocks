@@ -600,11 +600,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.aj.P === region.az.P)
+	if (region.al.P === region.aB.P)
 	{
-		return 'on line ' + region.aj.P;
+		return 'on line ' + region.al.P;
 	}
-	return 'on lines ' + region.aj.P + ' through ' + region.az.P;
+	return 'on lines ' + region.al.P + ' through ' + region.aB.P;
 }
 
 
@@ -1861,9 +1861,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bn,
-		impl.bL,
-		impl.bE,
+		impl.bq,
+		impl.bW,
+		impl.bP,
 		function() { return function() {} }
 	);
 });
@@ -2728,8 +2728,8 @@ var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
 		t: func(record.t),
-		ak: record.ak,
-		ag: record.ag
+		am: record.am,
+		ai: record.ai
 	}
 });
 
@@ -2998,10 +2998,10 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 
 		var value = result.a;
 		var message = !tag ? value : tag < 3 ? value.a : value.t;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.ak;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.am;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.ag) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.ai) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3951,11 +3951,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bn,
-		impl.bL,
-		impl.bE,
+		impl.bq,
+		impl.bW,
+		impl.bP,
 		function(sendToApp, initialModel) {
-			var view = impl.bM;
+			var view = impl.bX;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3987,12 +3987,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bn,
-		impl.bL,
-		impl.bE,
+		impl.bq,
+		impl.bW,
+		impl.bP,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.ai && impl.ai(sendToApp)
-			var view = impl.bM;
+			var divertHrefToApp = impl.ak && impl.ak(sendToApp)
+			var view = impl.bX;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -4000,12 +4000,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.bd);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.be);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.bG) && (_VirtualDom_doc.title = title = doc.bG);
+				(title !== doc.bR) && (_VirtualDom_doc.title = title = doc.bR);
 			});
 		}
 	);
@@ -4061,12 +4061,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.bs;
-	var onUrlRequest = impl.bt;
+	var onUrlChange = impl.bA;
+	var onUrlRequest = impl.bB;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		ai: function(sendToApp)
+		ak: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4082,9 +4082,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.aT === next.aT
-							&& curr.aH === next.aH
-							&& curr.aQ.a === next.aQ.a
+							&& curr.aV === next.aV
+							&& curr.aJ === next.aJ
+							&& curr.aS.a === next.aS.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4092,13 +4092,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		bn: function(flags)
+		bq: function(flags)
 		{
-			return A3(impl.bn, flags, _Browser_getUrl(), key);
+			return A3(impl.bq, flags, _Browser_getUrl(), key);
 		},
-		bM: impl.bM,
-		bL: impl.bL,
-		bE: impl.bE
+		bX: impl.bX,
+		bW: impl.bW,
+		bP: impl.bP
 	});
 }
 
@@ -4164,17 +4164,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { bk: 'hidden', be: 'visibilitychange' }
+		? { bn: 'hidden', bh: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { bk: 'mozHidden', be: 'mozvisibilitychange' }
+		? { bn: 'mozHidden', bh: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { bk: 'msHidden', be: 'msvisibilitychange' }
+		? { bn: 'msHidden', bh: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { bk: 'webkitHidden', be: 'webkitvisibilitychange' }
-		: { bk: 'hidden', be: 'visibilitychange' };
+		? { bn: 'webkitHidden', bh: 'webkitvisibilitychange' }
+		: { bn: 'hidden', bh: 'visibilitychange' };
 }
 
 
@@ -4255,12 +4255,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		aZ: _Browser_getScene(),
-		a3: {
+		a$: _Browser_getScene(),
+		a5: {
 			a: _Browser_window.pageXOffset,
 			b: _Browser_window.pageYOffset,
-			a6: _Browser_doc.documentElement.clientWidth,
-			aF: _Browser_doc.documentElement.clientHeight
+			a8: _Browser_doc.documentElement.clientWidth,
+			aH: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4270,8 +4270,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		a6: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		aF: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		a8: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		aH: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4294,15 +4294,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			aZ: {
-				a6: node.scrollWidth,
-				aF: node.scrollHeight
+			a$: {
+				a8: node.scrollWidth,
+				aH: node.scrollHeight
 			},
-			a3: {
+			a5: {
 				a: node.scrollLeft,
 				b: node.scrollTop,
-				a6: node.clientWidth,
-				aF: node.clientHeight
+				a8: node.clientWidth,
+				aH: node.clientHeight
 			}
 		};
 	});
@@ -4332,18 +4332,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			aZ: _Browser_getScene(),
-			a3: {
+			a$: _Browser_getScene(),
+			a5: {
 				a: x,
 				b: y,
-				a6: _Browser_doc.documentElement.clientWidth,
-				aF: _Browser_doc.documentElement.clientHeight
+				a8: _Browser_doc.documentElement.clientWidth,
+				aH: _Browser_doc.documentElement.clientHeight
 			},
-			bh: {
+			bk: {
 				a: x + rect.left,
 				b: y + rect.top,
-				a6: rect.width,
-				aF: rect.height
+				a8: rect.width,
+				aH: rect.height
 			}
 		};
 	});
@@ -4928,7 +4928,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {aC: fragment, aH: host, aN: path, aQ: port_, aT: protocol, aU: query};
+		return {aE: fragment, aJ: host, aP: path, aS: port_, aV: protocol, aW: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5213,41 +5213,45 @@ var $author$project$Model$DrawMode = 0;
 var $author$project$Model$EnergeticCollisions = 2;
 var $author$project$Model$Idle = {$: 0};
 var $author$project$Model$NoPanel = 0;
+var $author$project$Model$NotCreating = {$: 0};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: -2};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$History$empty = {s: _List_Nil, o: _List_Nil};
 var $author$project$Model$vecZero = {a: 0, b: 0};
 var $author$project$Model$initialModel = {
-	bc: $elm$core$Dict$empty,
-	aq: {aF: 600, a6: 800},
-	ar: {W: $author$project$Model$vecZero, Y: 1.0},
-	au: {
-		ap: 0,
-		at: 2,
-		aw: 0.999,
-		aD: {a: 0, b: 300},
-		a2: 30
+	aq: $elm$core$Dict$empty,
+	as: {aH: 600, a8: 800},
+	at: {X: $author$project$Model$vecZero, _: 1.0},
+	aw: {
+		ar: 0,
+		av: 2,
+		ay: 0.999,
+		aF: {a: 0, b: 300},
+		a4: 30
 	},
-	aG: $author$project$History$empty,
-	bo: {
+	aI: $author$project$History$empty,
+	bu: $elm$core$Dict$empty,
+	bv: {
 		N: _List_fromArray(
 			['Sound Blocks ready. Draw mode. Arrows move cursor, Enter places shape, Tab to Select mode.']),
-		aK: $elm$core$Maybe$Nothing
+		aM: $elm$core$Maybe$Nothing
 	},
-	ae: 1,
-	a_: {aB: 1.0 / 30.0, aY: true, a$: 0},
-	am: {
-		a9: 'Rubber',
-		av: {
+	af: 1,
+	ag: 1,
+	a0: {aD: 1.0 / 30.0, a_: true, a1: 0},
+	Z: {
+		bb: 'Rubber',
+		ax: {
 			Q: {a: 400, b: 300},
-			a4: true
+			a6: true
 		},
-		ay: 0,
-		aI: $elm$core$Maybe$Nothing,
-		aL: 0,
-		bv: 0,
-		aP: $author$project$Model$Idle,
-		bz: $elm$core$Maybe$Nothing
+		aA: 0,
+		aK: $elm$core$Maybe$Nothing,
+		bt: $author$project$Model$NotCreating,
+		aN: 0,
+		bD: 0,
+		aR: $author$project$Model$Idle,
+		bJ: $elm$core$Maybe$Nothing
 	}
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
@@ -5267,7 +5271,7 @@ var $elm$time$Time$Every = F2(
 	});
 var $elm$time$Time$State = F2(
 	function (taggers, processes) {
-		return {aS: processes, a1: taggers};
+		return {aU: processes, a3: taggers};
 	});
 var $elm$time$Time$init = $elm$core$Task$succeed(
 	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
@@ -5557,7 +5561,7 @@ var $elm$time$Time$spawnHelp = F3(
 	});
 var $elm$time$Time$onEffects = F3(
 	function (router, subs, _v0) {
-		var processes = _v0.aS;
+		var processes = _v0.aU;
 		var rightStep = F3(
 			function (_v6, id, _v7) {
 				var spawns = _v7.a;
@@ -5626,7 +5630,7 @@ var $elm$time$Time$millisToPosix = $elm$core$Basics$identity;
 var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
 var $elm$time$Time$onSelfMsg = F3(
 	function (router, interval, state) {
-		var _v0 = A2($elm$core$Dict$get, interval, state.a1);
+		var _v0 = A2($elm$core$Dict$get, interval, state.a3);
 		if (_v0.$ === 1) {
 			return $elm$core$Task$succeed(state);
 		} else {
@@ -5706,7 +5710,7 @@ var $elm$browser$Browser$Events$MySub = F3(
 	});
 var $elm$browser$Browser$Events$State = F2(
 	function (subs, pids) {
-		return {aO: pids, a0: subs};
+		return {aQ: pids, a2: subs};
 	});
 var $elm$browser$Browser$Events$init = $elm$core$Task$succeed(
 	A2($elm$browser$Browser$Events$State, _List_Nil, $elm$core$Dict$empty));
@@ -5740,7 +5744,7 @@ var $elm$core$Dict$fromList = function (assocs) {
 };
 var $elm$browser$Browser$Events$Event = F2(
 	function (key, event) {
-		return {aA: event, aJ: key};
+		return {aC: event, aL: key};
 	});
 var $elm$browser$Browser$Events$spawn = F3(
 	function (router, key, _v0) {
@@ -5814,7 +5818,7 @@ var $elm$browser$Browser$Events$onEffects = F3(
 			stepLeft,
 			stepBoth,
 			stepRight,
-			state.aO,
+			state.aQ,
 			$elm$core$Dict$fromList(newSubs),
 			_Utils_Tuple3(_List_Nil, $elm$core$Dict$empty, _List_Nil));
 		var deadPids = _v0.a;
@@ -5860,8 +5864,8 @@ var $elm$core$List$filterMap = F2(
 	});
 var $elm$browser$Browser$Events$onSelfMsg = F3(
 	function (router, _v0, state) {
-		var key = _v0.aJ;
-		var event = _v0.aA;
+		var key = _v0.aL;
+		var event = _v0.aC;
 		var toMessage = function (_v2) {
 			var subKey = _v2.a;
 			var _v3 = _v2.b;
@@ -5870,7 +5874,7 @@ var $elm$browser$Browser$Events$onSelfMsg = F3(
 			var decoder = _v3.c;
 			return _Utils_eq(subKey, key) ? A2(_Browser_decodeEvent, decoder, event) : $elm$core$Maybe$Nothing;
 		};
-		var messages = A2($elm$core$List$filterMap, toMessage, state.a0);
+		var messages = A2($elm$core$List$filterMap, toMessage, state.a2);
 		return A2(
 			$elm$core$Task$andThen,
 			function (_v1) {
@@ -5907,10 +5911,10 @@ var $author$project$Update$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
-				model.a_.aY ? A2($elm$time$Time$every, 1000 / model.au.a2, $author$project$Update$Tick) : $elm$core$Platform$Sub$none,
+				model.a0.a_ ? A2($elm$time$Time$every, 1000 / model.aw.a4, $author$project$Update$Tick) : $elm$core$Platform$Sub$none,
 				$elm$browser$Browser$Events$onKeyDown($author$project$Update$keyDecoder),
 				function () {
-				var _v0 = model.am.aP;
+				var _v0 = model.Z.aR;
 				if (!_v0.$) {
 					return $elm$core$Platform$Sub$none;
 				} else {
@@ -5930,8 +5934,12 @@ var $author$project$Update$subscriptions = function (model) {
 			}()
 			]));
 };
+var $author$project$Model$ConstraintPanel = 3;
 var $author$project$Model$InspectMode = 3;
 var $author$project$Model$MaterialPanel = 1;
+var $author$project$Model$PickingFirst = function (a) {
+	return {$: 1, a: a};
+};
 var $author$project$Model$RectTool = 1;
 var $author$project$Update$Redo = {$: 13};
 var $author$project$Model$RunMode = 2;
@@ -6075,7 +6083,7 @@ var $elm$core$List$take = F2(
 	});
 var $author$project$Model$announce = F2(
 	function (msg, model) {
-		var log = model.bo;
+		var log = model.bv;
 		var newAnnouncements = A2(
 			$elm$core$List$cons,
 			msg,
@@ -6083,7 +6091,7 @@ var $author$project$Model$announce = F2(
 		return _Utils_update(
 			model,
 			{
-				bo: _Utils_update(
+				bv: _Utils_update(
 					log,
 					{N: newAnnouncements})
 			});
@@ -6117,15 +6125,15 @@ var $author$project$Update$applyChange = F2(
 					});
 			case 2:
 				var d = change.a;
-				var _v1 = body.X;
+				var _v1 = body.Y;
 				if (!_v1.$) {
-					var r = _v1.a.aV;
+					var r = _v1.a.aX;
 					return _Utils_update(
 						body,
 						{
-							X: $author$project$Model$Circle(
+							Y: $author$project$Model$Circle(
 								{
-									aV: A2($elm$core$Basics$max, 5, r + d)
+									aX: A2($elm$core$Basics$max, 5, r + d)
 								})
 						});
 				} else {
@@ -6133,17 +6141,17 @@ var $author$project$Update$applyChange = F2(
 				}
 			case 3:
 				var d = change.a;
-				var _v2 = body.X;
+				var _v2 = body.Y;
 				if (_v2.$ === 1) {
-					var w = _v2.a.a5;
-					var h = _v2.a.aE;
+					var w = _v2.a.a7;
+					var h = _v2.a.aG;
 					return _Utils_update(
 						body,
 						{
-							X: $author$project$Model$Rect(
+							Y: $author$project$Model$Rect(
 								{
-									aE: h,
-									a5: A2($elm$core$Basics$max, 10, w + d)
+									aG: h,
+									a7: A2($elm$core$Basics$max, 10, w + d)
 								})
 						});
 				} else {
@@ -6151,17 +6159,17 @@ var $author$project$Update$applyChange = F2(
 				}
 			case 4:
 				var d = change.a;
-				var _v3 = body.X;
+				var _v3 = body.Y;
 				if (_v3.$ === 1) {
-					var w = _v3.a.a5;
-					var h = _v3.a.aE;
+					var w = _v3.a.a7;
+					var h = _v3.a.aG;
 					return _Utils_update(
 						body,
 						{
-							X: $author$project$Model$Rect(
+							Y: $author$project$Model$Rect(
 								{
-									aE: A2($elm$core$Basics$max, 10, h + d),
-									a5: w
+									aG: A2($elm$core$Basics$max, 10, h + d),
+									a7: w
 								})
 						});
 				} else {
@@ -6172,7 +6180,7 @@ var $author$project$Update$applyChange = F2(
 				return _Utils_update(
 					body,
 					{
-						ab: A2($elm$core$Basics$max, 0.1, body.ab + d)
+						ac: A2($elm$core$Basics$max, 0.1, body.ac + d)
 					});
 			case 6:
 				var d = change.a;
@@ -6201,7 +6209,7 @@ var $elm$core$Maybe$map = F2(
 		}
 	});
 var $author$project$Update$makeSnapshot = function (model) {
-	return {bc: model.bc, ae: model.ae};
+	return {aq: model.aq, bu: model.bu, af: model.af, ag: model.ag};
 };
 var $author$project$History$maxDepth = 50;
 var $author$project$History$push = F2(
@@ -6218,10 +6226,10 @@ var $author$project$Update$pushSnapshot = function (model) {
 	return _Utils_update(
 		model,
 		{
-			aG: A2(
+			aI: A2(
 				$author$project$History$push,
 				$author$project$Update$makeSnapshot(model),
-				model.aG)
+				model.aI)
 		});
 };
 var $elm$core$Dict$getMin = function (dict) {
@@ -6599,7 +6607,7 @@ var $elm$core$Dict$update = F3(
 	});
 var $author$project$Update$applyPropertyChange = F2(
 	function (change, model) {
-		var _v0 = model.am.bz;
+		var _v0 = model.Z.bJ;
 		if (_v0.$ === 1) {
 			return model;
 		} else {
@@ -6609,11 +6617,11 @@ var $author$project$Update$applyPropertyChange = F2(
 				id,
 				$elm$core$Maybe$map(
 					$author$project$Update$applyChange(change)),
-				model.bc);
+				model.aq);
 			return $author$project$Update$pushSnapshot(
 				_Utils_update(
 					model,
-					{bc: newBodies}));
+					{aq: newBodies}));
 		}
 	});
 var $elm$core$Basics$negate = function (n) {
@@ -6643,7 +6651,7 @@ var $author$project$Ports$sendAudioEvent = function (event) {
 				[
 					_Utils_Tuple2(
 					'type',
-					$elm$json$Json$Encode$string(event.bi)),
+					$elm$json$Json$Encode$string(event.bl)),
 					_Utils_Tuple2(
 					'energy',
 					$elm$json$Json$Encode$float(event.V)),
@@ -6655,19 +6663,19 @@ var $author$project$Ports$sendAudioEvent = function (event) {
 					$elm$json$Json$Encode$float(event.b)),
 					_Utils_Tuple2(
 					'a',
-					$elm$json$Json$Encode$int(event.a8)),
+					$elm$json$Json$Encode$int(event.ba)),
 					_Utils_Tuple2(
 					'b',
-					$elm$json$Json$Encode$int(event.bb)),
+					$elm$json$Json$Encode$int(event.bd)),
 					_Utils_Tuple2(
 					'step',
-					$elm$json$Json$Encode$int(event.bD)),
+					$elm$json$Json$Encode$int(event.bN)),
 					_Utils_Tuple2(
 					'materialA',
-					$elm$json$Json$Encode$string(event.bp)),
+					$elm$json$Json$Encode$string(event.bw)),
 					_Utils_Tuple2(
 					'materialB',
-					$elm$json$Json$Encode$string(event.bq))
+					$elm$json$Json$Encode$string(event.bx))
 				])));
 };
 var $elm$core$Maybe$withDefault = F2(
@@ -6682,7 +6690,7 @@ var $elm$core$Maybe$withDefault = F2(
 var $author$project$Update$collisionToAudioCmd = F2(
 	function (bodies, event) {
 		var matB = function () {
-			var _v1 = event.bb;
+			var _v1 = event.bd;
 			if (!_v1.$) {
 				var id = _v1.a;
 				return A2(
@@ -6691,7 +6699,7 @@ var $author$project$Update$collisionToAudioCmd = F2(
 					A2(
 						$elm$core$Maybe$map,
 						function ($) {
-							return $.ac;
+							return $.ad;
 						},
 						A2($elm$core$Dict$get, id, bodies)));
 			} else {
@@ -6704,11 +6712,11 @@ var $author$project$Update$collisionToAudioCmd = F2(
 			A2(
 				$elm$core$Maybe$map,
 				function ($) {
-					return $.ac;
+					return $.ad;
 				},
-				A2($elm$core$Dict$get, event.a8, bodies)));
+				A2($elm$core$Dict$get, event.ba, bodies)));
 		var bId = function () {
-			var _v0 = event.bb;
+			var _v0 = event.bd;
 			if (!_v0.$) {
 				var id = _v0.a;
 				return id;
@@ -6717,7 +6725,7 @@ var $author$project$Update$collisionToAudioCmd = F2(
 			}
 		}();
 		return $author$project$Ports$sendAudioEvent(
-			{a8: event.a8, bb: bId, V: event.V, bi: 'collision', bp: matA, bq: matB, bD: event.bF, a: event.bw.a, b: event.bw.b});
+			{ba: event.ba, bd: bId, V: event.V, bl: 'collision', bw: matA, bx: matB, bN: event.bQ, a: event.bE.a, b: event.bE.b});
 	});
 var $elm$core$Basics$min = F2(
 	function (x, y) {
@@ -6804,23 +6812,23 @@ var $author$project$Model$makeCircle = F4(
 		var mat = $author$project$Material$getMaterial(matName);
 		return {
 			U: {
-				_: mat.n + (' circle, radius ' + $elm$core$String$fromInt(
+				ab: mat.n + (' circle, radius ' + $elm$core$String$fromInt(
 					$elm$core$Basics$round(r))),
 				n: 'Circle ' + $elm$core$String$fromInt(id)
 			},
-			Z: 0,
+			aa: 0,
 			V: 0,
 			B: mat.B,
-			aa: id,
-			ab: (((mat.z * $elm$core$Basics$pi) * r) * r) * 0.001,
-			ac: matName,
+			W: id,
+			ac: (((mat.z * $elm$core$Basics$pi) * r) * r) * 0.001,
+			ad: matName,
 			Q: pos,
 			G: mat.G,
-			ah: 0,
-			X: $author$project$Model$Circle(
-				{aV: r}),
-			al: _List_Nil,
-			an: $author$project$Model$vecZero
+			aj: 0,
+			Y: $author$project$Model$Circle(
+				{aX: r}),
+			an: _List_Nil,
+			ao: $author$project$Model$vecZero
 		};
 	});
 var $author$project$Model$makeRect = F5(
@@ -6828,24 +6836,24 @@ var $author$project$Model$makeRect = F5(
 		var mat = $author$project$Material$getMaterial(matName);
 		return {
 			U: {
-				_: mat.n + (' rectangle ' + ($elm$core$String$fromInt(
+				ab: mat.n + (' rectangle ' + ($elm$core$String$fromInt(
 					$elm$core$Basics$round(w)) + ('x' + $elm$core$String$fromInt(
 					$elm$core$Basics$round(h))))),
 				n: 'Rect ' + $elm$core$String$fromInt(id)
 			},
-			Z: 0,
+			aa: 0,
 			V: 0,
 			B: mat.B,
-			aa: id,
-			ab: ((mat.z * w) * h) * 0.0001,
-			ac: matName,
+			W: id,
+			ac: ((mat.z * w) * h) * 0.0001,
+			ad: matName,
 			Q: pos,
 			G: mat.G,
-			ah: 0,
-			X: $author$project$Model$Rect(
-				{aE: h, a5: w}),
-			al: _List_Nil,
-			an: $author$project$Model$vecZero
+			aj: 0,
+			Y: $author$project$Model$Rect(
+				{aG: h, a7: w}),
+			an: _List_Nil,
+			ao: $author$project$Model$vecZero
 		};
 	});
 var $elm$core$Dict$sizeHelp = F2(
@@ -6870,18 +6878,18 @@ var $elm$core$Dict$size = function (dict) {
 };
 var $author$project$Update$placeShapeAt = F2(
 	function (pos, model) {
-		var ui = model.am;
+		var ui = model.Z;
 		var snapped = $author$project$Update$pushSnapshot(model);
-		var matName = ui.a9;
+		var matName = ui.bb;
 		var newBody = function () {
-			var _v0 = ui.ay;
+			var _v0 = ui.aA;
 			if (!_v0) {
-				return A4($author$project$Model$makeCircle, model.ae, pos, 20, matName);
+				return A4($author$project$Model$makeCircle, model.af, pos, 20, matName);
 			} else {
-				return A5($author$project$Model$makeRect, model.ae, pos, 40, 30, matName);
+				return A5($author$project$Model$makeRect, model.af, pos, 40, 30, matName);
 			}
 		}();
-		var newBodies = A3($elm$core$Dict$insert, model.ae, newBody, model.bc);
+		var newBodies = A3($elm$core$Dict$insert, model.af, newBody, model.aq);
 		return A2(
 			$author$project$Model$announce,
 			$author$project$Model$bodyLabel(newBody) + (' placed at ' + ($elm$core$String$fromInt(
@@ -6890,23 +6898,23 @@ var $author$project$Update$placeShapeAt = F2(
 				$elm$core$Dict$size(newBodies)) + ' bodies total.')))))),
 			_Utils_update(
 				snapped,
-				{bc: newBodies, ae: model.ae + 1}));
+				{aq: newBodies, af: model.af + 1}));
 	});
 var $author$project$Update$handleDrawKey = F2(
 	function (key, model) {
-		var ui = model.am;
+		var ui = model.Z;
 		var step = 20;
-		var cursor = ui.av;
-		var bounds = model.aq;
+		var cursor = ui.ax;
+		var bounds = model.as;
 		switch (key) {
 			case 'ArrowUp':
 				return _Utils_update(
 					model,
 					{
-						am: _Utils_update(
+						Z: _Utils_update(
 							ui,
 							{
-								av: _Utils_update(
+								ax: _Utils_update(
 									cursor,
 									{
 										Q: {
@@ -6920,15 +6928,15 @@ var $author$project$Update$handleDrawKey = F2(
 				return _Utils_update(
 					model,
 					{
-						am: _Utils_update(
+						Z: _Utils_update(
 							ui,
 							{
-								av: _Utils_update(
+								ax: _Utils_update(
 									cursor,
 									{
 										Q: {
 											a: cursor.Q.a,
-											b: A2($elm$core$Basics$min, bounds.aF - 20, cursor.Q.b + step)
+											b: A2($elm$core$Basics$min, bounds.aH - 20, cursor.Q.b + step)
 										}
 									})
 							})
@@ -6937,10 +6945,10 @@ var $author$project$Update$handleDrawKey = F2(
 				return _Utils_update(
 					model,
 					{
-						am: _Utils_update(
+						Z: _Utils_update(
 							ui,
 							{
-								av: _Utils_update(
+								ax: _Utils_update(
 									cursor,
 									{
 										Q: {
@@ -6954,23 +6962,23 @@ var $author$project$Update$handleDrawKey = F2(
 				return _Utils_update(
 					model,
 					{
-						am: _Utils_update(
+						Z: _Utils_update(
 							ui,
 							{
-								av: _Utils_update(
+								ax: _Utils_update(
 									cursor,
 									{
 										Q: {
-											a: A2($elm$core$Basics$min, bounds.a6 - 20, cursor.Q.a + step),
+											a: A2($elm$core$Basics$min, bounds.a8 - 20, cursor.Q.a + step),
 											b: cursor.Q.b
 										}
 									})
 							})
 					});
 			case 'Enter':
-				return A2($author$project$Update$placeShapeAt, model.am.av.Q, model);
+				return A2($author$project$Update$placeShapeAt, model.Z.ax.Q, model);
 			case ' ':
-				return A2($author$project$Update$placeShapeAt, model.am.av.Q, model);
+				return A2($author$project$Update$placeShapeAt, model.Z.ax.Q, model);
 			case 'Tab':
 				return A2(
 					$author$project$Model$announce,
@@ -6978,15 +6986,26 @@ var $author$project$Update$handleDrawKey = F2(
 					_Utils_update(
 						model,
 						{
-							am: _Utils_update(
+							Z: _Utils_update(
 								ui,
-								{aL: 1})
+								{aN: 1})
 						}));
 			case 'Escape':
 				return model;
 			default:
 				return model;
 		}
+	});
+var $elm$core$Dict$filter = F2(
+	function (isGood, dict) {
+		return A3(
+			$elm$core$Dict$foldl,
+			F3(
+				function (k, v, d) {
+					return A2(isGood, k, v) ? A3($elm$core$Dict$insert, k, v, d) : d;
+				}),
+			$elm$core$Dict$empty,
+			dict);
 	});
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
@@ -7008,9 +7027,10 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Update$nudgeSelected = F2(
 	function (impulse, model) {
-		var _v0 = model.am.bz;
+		var _v0 = model.Z.bJ;
 		if (!_v0.$) {
 			var id = _v0.a;
 			var newBodies = A3(
@@ -7021,13 +7041,13 @@ var $author$project$Update$nudgeSelected = F2(
 						return _Utils_update(
 							body,
 							{
-								an: {a: body.an.a + (impulse.a * 10), b: body.an.b + (impulse.b * 10)}
+								ao: {a: body.ao.a + (impulse.a * 10), b: body.ao.b + (impulse.b * 10)}
 							});
 					}),
-				model.bc);
+				model.aq);
 			return _Utils_update(
 				model,
-				{bc: newBodies});
+				{aq: newBodies});
 		} else {
 			return A2($author$project$Model$announce, 'No body selected to nudge.', model);
 		}
@@ -7036,12 +7056,12 @@ var $author$project$Update$handleSelectKey = F2(
 	function (key, model) {
 		handleSelectKey:
 		while (true) {
-			var ui = model.am;
+			var ui = model.Z;
 			switch (key) {
 				case 'Tab':
-					var bodyIds = $elm$core$Dict$keys(model.bc);
+					var bodyIds = $elm$core$Dict$keys(model.aq);
 					var nextSelected = function () {
-						var _v3 = ui.bz;
+						var _v3 = ui.bJ;
 						if (_v3.$ === 1) {
 							return $elm$core$List$head(bodyIds);
 						} else {
@@ -7065,7 +7085,7 @@ var $author$project$Update$handleSelectKey = F2(
 						function () {
 							if (!nextSelected.$) {
 								var id = nextSelected.a;
-								var _v2 = A2($elm$core$Dict$get, id, model.bc);
+								var _v2 = A2($elm$core$Dict$get, id, model.aq);
 								if (!_v2.$) {
 									var body = _v2.a;
 									return $author$project$Model$bodyLabel(body) + (' at ' + ($elm$core$String$fromInt(
@@ -7081,9 +7101,9 @@ var $author$project$Update$handleSelectKey = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{bz: nextSelected})
+									{bJ: nextSelected})
 							}));
 				case 'ArrowUp':
 					return A2(
@@ -7106,18 +7126,25 @@ var $author$project$Update$handleSelectKey = F2(
 						{a: 15, b: 0},
 						model);
 				case 'Delete':
-					var _v5 = ui.bz;
+					var _v5 = ui.bJ;
 					if (!_v5.$) {
 						var id = _v5.a;
 						var snapped = $author$project$Update$pushSnapshot(model);
-						var newBodies = A2($elm$core$Dict$remove, id, snapped.bc);
+						var newLinks = A2(
+							$elm$core$Dict$filter,
+							F2(
+								function (_v6, link) {
+									return (!_Utils_eq(link.bf, id)) && (!_Utils_eq(link.bg, id));
+								}),
+							snapped.bu);
+						var newBodies = A2($elm$core$Dict$remove, id, snapped.aq);
 						var name = A2(
 							$elm$core$Maybe$withDefault,
 							'Body ' + $elm$core$String$fromInt(id),
 							A2(
 								$elm$core$Maybe$map,
 								$author$project$Model$bodyLabel,
-								A2($elm$core$Dict$get, id, model.bc)));
+								A2($elm$core$Dict$get, id, model.aq)));
 						return A2(
 							$author$project$Model$announce,
 							name + (' deleted. ' + ($elm$core$String$fromInt(
@@ -7125,10 +7152,11 @@ var $author$project$Update$handleSelectKey = F2(
 							_Utils_update(
 								snapped,
 								{
-									bc: newBodies,
-									am: _Utils_update(
+									aq: newBodies,
+									bu: newLinks,
+									Z: _Utils_update(
 										ui,
-										{bz: $elm$core$Maybe$Nothing})
+										{bJ: $elm$core$Maybe$Nothing})
 								}));
 					} else {
 						return model;
@@ -7146,9 +7174,9 @@ var $author$project$Update$handleSelectKey = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{aL: 0, bz: $elm$core$Maybe$Nothing})
+									{aN: 0, bJ: $elm$core$Maybe$Nothing})
 							}));
 				default:
 					return model;
@@ -7157,7 +7185,7 @@ var $author$project$Update$handleSelectKey = F2(
 	});
 var $author$project$Update$handleInspectKey = F2(
 	function (key, model) {
-		var ui = model.am;
+		var ui = model.Z;
 		switch (key) {
 			case 'Tab':
 				return A2($author$project$Update$handleSelectKey, 'Tab', model);
@@ -7168,9 +7196,9 @@ var $author$project$Update$handleInspectKey = F2(
 					_Utils_update(
 						model,
 						{
-							am: _Utils_update(
+							Z: _Utils_update(
 								ui,
-								{aL: 0})
+								{aN: 0})
 						}));
 			default:
 				return model;
@@ -7185,16 +7213,16 @@ var $author$project$Model$Panning = function (a) {
 };
 var $author$project$Update$handlePointerMove = F3(
 	function (cx, cy, model) {
-		var ui = model.am;
-		var _v0 = ui.aP;
+		var ui = model.Z;
+		var _v0 = ui.aR;
 		switch (_v0.$) {
 			case 0:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 1:
 				var id = _v0.a;
 				var lastPos = _v0.b;
-				var dy = (cy - lastPos.b) / model.ar.Y;
-				var dx = (cx - lastPos.a) / model.ar.Y;
+				var dy = (cy - lastPos.b) / model.at._;
+				var dx = (cx - lastPos.a) / model.at._;
 				var newBodies = A3(
 					$elm$core$Dict$update,
 					id,
@@ -7204,19 +7232,19 @@ var $author$project$Update$handlePointerMove = F3(
 								body,
 								{
 									Q: {a: body.Q.a + dx, b: body.Q.b + dy},
-									an: $author$project$Model$vecZero
+									ao: $author$project$Model$vecZero
 								});
 						}),
-					model.bc);
+					model.aq);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							bc: newBodies,
-							am: _Utils_update(
+							aq: newBodies,
+							Z: _Utils_update(
 								ui,
 								{
-									aP: A2(
+									aR: A2(
 										$author$project$Model$DraggingBody,
 										id,
 										{a: cx, b: cy})
@@ -7225,39 +7253,149 @@ var $author$project$Update$handlePointerMove = F3(
 					$elm$core$Platform$Cmd$none);
 			default:
 				var lastPos = _v0.a;
-				var dy = (cy - lastPos.b) / model.ar.Y;
-				var dx = (cx - lastPos.a) / model.ar.Y;
-				var camera = model.ar;
-				var newOffset = {a: camera.W.a - dx, b: camera.W.b - dy};
+				var dy = (cy - lastPos.b) / model.at._;
+				var dx = (cx - lastPos.a) / model.at._;
+				var camera = model.at;
+				var newOffset = {a: camera.X.a - dx, b: camera.X.b - dy};
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							ar: _Utils_update(
+							at: _Utils_update(
 								camera,
-								{W: newOffset}),
-							am: _Utils_update(
+								{X: newOffset}),
+							Z: _Utils_update(
 								ui,
 								{
-									aP: $author$project$Model$Panning(
+									aR: $author$project$Model$Panning(
 										{a: cx, b: cy})
 								})
 						}),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$Model$PickingSecond = F2(
+	function (a, b) {
+		return {$: 2, a: a, b: b};
+	});
+var $author$project$Update$handleLinkPick = F3(
+	function (svgMsg, kind, model) {
+		switch (svgMsg.$) {
+			case 1:
+				var id = svgMsg.a;
+				var ui = model.Z;
+				return _Utils_Tuple2(
+					A2(
+						$author$project$Model$announce,
+						'Body ' + ($elm$core$String$fromInt(id) + ' selected. Click second body.'),
+						_Utils_update(
+							model,
+							{
+								Z: _Utils_update(
+									ui,
+									{
+										bt: A2($author$project$Model$PickingSecond, kind, id),
+										bJ: $elm$core$Maybe$Just(id)
+									})
+							})),
+					$elm$core$Platform$Cmd$none);
+			case 0:
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
+	});
+var $author$project$Model$RopeLink = function (a) {
+	return {$: 2, a: a};
+};
+var $author$project$Model$SpringLink = function (a) {
+	return {$: 1, a: a};
+};
+var $author$project$Model$StringLink = function (a) {
+	return {$: 0, a: a};
+};
+var $author$project$Model$WeldLink = function (a) {
+	return {$: 3, a: a};
+};
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$Model$vecLen = function (v) {
+	return $elm$core$Basics$sqrt((v.a * v.a) + (v.b * v.b));
+};
+var $author$project$Model$vecSub = F2(
+	function (a, b) {
+		return {a: a.a - b.a, b: a.b - b.b};
+	});
+var $author$project$Update$createLink = F4(
+	function (kind, bodyA, bodyB, model) {
+		var _v0 = _Utils_Tuple2(
+			A2($elm$core$Dict$get, bodyA, model.aq),
+			A2($elm$core$Dict$get, bodyB, model.aq));
+		if ((!_v0.a.$) && (!_v0.b.$)) {
+			var a = _v0.a.a;
+			var b = _v0.b.a;
+			var ui = model.Z;
+			var snapped = $author$project$Update$pushSnapshot(model);
+			var delta = A2($author$project$Model$vecSub, b.Q, a.Q);
+			var dist = $author$project$Model$vecLen(delta);
+			var resolvedKind = function () {
+				switch (kind.$) {
+					case 0:
+						return $author$project$Model$StringLink(
+							{bs: dist});
+					case 1:
+						return $author$project$Model$SpringLink(
+							{bH: dist, bO: 100});
+					case 2:
+						return $author$project$Model$RopeLink(
+							{by: dist * 1.5});
+					default:
+						return $author$project$Model$WeldLink(
+							{bG: delta});
+				}
+			}();
+			var newLink = {bf: bodyA, bg: bodyB, W: model.ag, br: resolvedKind};
+			return _Utils_Tuple2(
+				A2(
+					$author$project$Model$announce,
+					'Constraint created.',
+					_Utils_update(
+						snapped,
+						{
+							bu: A3($elm$core$Dict$insert, model.ag, newLink, snapped.bu),
+							ag: model.ag + 1,
+							Z: _Utils_update(
+								ui,
+								{bt: $author$project$Model$NotCreating})
+						})),
+				$elm$core$Platform$Cmd$none);
+		} else {
+			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
+	});
+var $author$project$Update$handleLinkPickSecond = F4(
+	function (svgMsg, kind, bodyA, model) {
+		switch (svgMsg.$) {
+			case 1:
+				var bodyB = svgMsg.a;
+				return _Utils_eq(bodyA, bodyB) ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : A4($author$project$Update$createLink, kind, bodyA, bodyB, model);
+			case 0:
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
+	});
 var $author$project$Model$screenToWorld = F2(
 	function (camera, screenPos) {
-		return {a: (screenPos.a / camera.Y) + camera.W.a, b: (screenPos.b / camera.Y) + camera.W.b};
+		return {a: (screenPos.a / camera._) + camera.X.a, b: (screenPos.b / camera._) + camera.X.b};
 	});
-var $author$project$Update$handleSvgMsg = F2(
+var $author$project$Update$handleSvgMsgNormal = F2(
 	function (svgMsg, model) {
 		switch (svgMsg.$) {
 			case 0:
 				var id = svgMsg.a;
-				var ui = model.am;
+				var ui = model.Z;
 				var bodyName = function () {
-					var _v1 = A2($elm$core$Dict$get, id, model.bc);
+					var _v1 = A2($elm$core$Dict$get, id, model.aq);
 					if (!_v1.$) {
 						var body = _v1.a;
 						return $author$project$Model$bodyLabel(body) + ' selected.';
@@ -7272,11 +7410,11 @@ var $author$project$Update$handleSvgMsg = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
 									{
-										aL: 1,
-										bz: $elm$core$Maybe$Just(id)
+										aN: 1,
+										bJ: $elm$core$Maybe$Just(id)
 									})
 							})),
 					$elm$core$Platform$Cmd$none);
@@ -7284,20 +7422,20 @@ var $author$project$Update$handleSvgMsg = F2(
 				var id = svgMsg.a;
 				var cx = svgMsg.b;
 				var cy = svgMsg.c;
-				var ui = model.am;
+				var ui = model.Z;
 				var snapped = $author$project$Update$pushSnapshot(model);
 				return _Utils_Tuple2(
 					_Utils_update(
 						snapped,
 						{
-							am: _Utils_update(
+							Z: _Utils_update(
 								ui,
 								{
-									aP: A2(
+									aR: A2(
 										$author$project$Model$DraggingBody,
 										id,
 										{a: cx, b: cy}),
-									bz: $elm$core$Maybe$Just(id)
+									bJ: $elm$core$Maybe$Just(id)
 								})
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -7306,25 +7444,25 @@ var $author$project$Update$handleSvgMsg = F2(
 				var oy = svgMsg.b;
 				var cx = svgMsg.c;
 				var cy = svgMsg.d;
-				var _v2 = model.am.aL;
+				var _v2 = model.Z.aN;
 				if (!_v2) {
 					var worldPos = A2(
 						$author$project$Model$screenToWorld,
-						model.ar,
+						model.at,
 						{a: ox, b: oy});
 					return _Utils_Tuple2(
 						A2($author$project$Update$placeShapeAt, worldPos, model),
 						$elm$core$Platform$Cmd$none);
 				} else {
-					var ui = model.am;
+					var ui = model.Z;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
 									{
-										aP: $author$project$Model$Panning(
+										aR: $author$project$Model$Panning(
 											{a: cx, b: cy})
 									})
 							}),
@@ -7332,6 +7470,21 @@ var $author$project$Update$handleSvgMsg = F2(
 				}
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
+	});
+var $author$project$Update$handleSvgMsg = F2(
+	function (svgMsg, model) {
+		var _v0 = model.Z.bt;
+		switch (_v0.$) {
+			case 1:
+				var kind = _v0.a;
+				return A3($author$project$Update$handleLinkPick, svgMsg, kind, model);
+			case 2:
+				var kind = _v0.a;
+				var bodyA = _v0.b;
+				return A4($author$project$Update$handleLinkPickSecond, svgMsg, kind, bodyA, model);
+			default:
+				return A2($author$project$Update$handleSvgMsgNormal, svgMsg, model);
 		}
 	});
 var $author$project$Update$modeAnnouncement = function (mode) {
@@ -7368,23 +7521,22 @@ var $author$project$Update$setSelected = F2(
 	function (sel, ui) {
 		return _Utils_update(
 			ui,
-			{bz: sel});
+			{bJ: sel});
 	});
 var $author$project$Update$setSimRunning = F2(
 	function (running, sim) {
 		return _Utils_update(
 			sim,
-			{aY: running});
+			{a_: running});
 	});
-var $elm$core$Basics$sqrt = _Basics_sqrt;
 var $author$project$Model$bodyRadius = function (body) {
-	var _v0 = body.X;
+	var _v0 = body.Y;
 	if (!_v0.$) {
-		var r = _v0.a.aV;
+		var r = _v0.a.aX;
 		return r;
 	} else {
-		var w = _v0.a.a5;
-		var h = _v0.a.aE;
+		var w = _v0.a.a7;
+		var h = _v0.a.aG;
 		return $elm$core$Basics$sqrt((w * w) + (h * h)) / 2;
 	}
 };
@@ -7408,31 +7560,31 @@ var $author$project$Physics$Step$clampAxisBounce = F4(
 var $author$project$Physics$Step$boundaryBounce = F2(
 	function (bounds, body) {
 		var r = $author$project$Model$bodyRadius(body);
-		var _v0 = A4($author$project$Physics$Step$bounceFloor, r, bounds.aF, body.Q.b, body.an.b);
+		var _v0 = A4($author$project$Physics$Step$bounceFloor, r, bounds.aH, body.Q.b, body.ao.b);
 		var py = _v0.a;
 		var vy = _v0.b;
-		var _v1 = A4($author$project$Physics$Step$clampAxisBounce, r, bounds.a6, body.Q.a, body.an.a);
+		var _v1 = A4($author$project$Physics$Step$clampAxisBounce, r, bounds.a8, body.Q.a, body.ao.a);
 		var px = _v1.a;
 		var vx = _v1.b;
 		return _Utils_update(
 			body,
 			{
 				Q: {a: px, b: py},
-				an: {a: vx, b: vy}
+				ao: {a: vx, b: vy}
 			});
 	});
 var $author$project$Physics$Step$boundaryClamp = F2(
 	function (bounds, body) {
 		var r = $author$project$Model$bodyRadius(body);
-		var vx = (((body.Q.a - r) < 0) || (_Utils_cmp(body.Q.a + r, bounds.a6) > 0)) ? 0 : body.an.a;
-		var vy = (_Utils_cmp(body.Q.b + r, bounds.aF) > 0) ? 0 : body.an.b;
-		var cy = A2($elm$core$Basics$min, bounds.aF - r, body.Q.b);
-		var cx = A3($elm$core$Basics$clamp, r, bounds.a6 - r, body.Q.a);
+		var vx = (((body.Q.a - r) < 0) || (_Utils_cmp(body.Q.a + r, bounds.a8) > 0)) ? 0 : body.ao.a;
+		var vy = (_Utils_cmp(body.Q.b + r, bounds.aH) > 0) ? 0 : body.ao.b;
+		var cy = A2($elm$core$Basics$min, bounds.aH - r, body.Q.b);
+		var cx = A3($elm$core$Basics$clamp, r, bounds.a8 - r, body.Q.a);
 		return _Utils_update(
 			body,
 			{
 				Q: {a: cx, b: cy},
-				an: {a: vx, b: vy}
+				ao: {a: vx, b: vy}
 			});
 	});
 var $author$project$Physics$Step$wrapAxis = F3(
@@ -7442,8 +7594,8 @@ var $author$project$Physics$Step$wrapAxis = F3(
 var $author$project$Physics$Step$boundaryWrap = F2(
 	function (bounds, body) {
 		var r = $author$project$Model$bodyRadius(body);
-		var wx = A3($author$project$Physics$Step$wrapAxis, r, bounds.a6, body.Q.a);
-		var wy = (_Utils_cmp(body.Q.b - r, bounds.aF) > 0) ? (-r) : body.Q.b;
+		var wx = A3($author$project$Physics$Step$wrapAxis, r, bounds.a8, body.Q.a);
+		var wy = (_Utils_cmp(body.Q.b - r, bounds.aH) > 0) ? (-r) : body.Q.b;
 		return _Utils_update(
 			body,
 			{
@@ -7505,7 +7657,7 @@ var $author$project$Physics$Collisions$makePairs = function (bodies) {
 			A2(
 				$elm$core$List$map,
 				function (other) {
-					return _Utils_Tuple2(b.aa, other.aa);
+					return _Utils_Tuple2(b.W, other.W);
 				},
 				rest),
 			$author$project$Physics$Collisions$makePairs(rest));
@@ -7515,38 +7667,38 @@ var $author$project$Model$BodyTarget = function (a) {
 	return {$: 0, a: a};
 };
 var $author$project$Physics$Collisions$bodyInertia = function (body) {
-	var _v0 = body.X;
+	var _v0 = body.Y;
 	if (!_v0.$) {
-		var r = _v0.a.aV;
-		return ((0.5 * body.ab) * r) * r;
+		var r = _v0.a.aX;
+		return ((0.5 * body.ac) * r) * r;
 	} else {
-		var w = _v0.a.a5;
-		var h = _v0.a.aE;
-		return (body.ab * ((w * w) + (h * h))) / 12;
+		var w = _v0.a.a7;
+		var h = _v0.a.aG;
+		return (body.ac * ((w * w) + (h * h))) / 12;
 	}
 };
 var $author$project$Physics$Collisions$shapeMinDist = F2(
 	function (a, b) {
-		var _v0 = _Utils_Tuple2(a.X, b.X);
+		var _v0 = _Utils_Tuple2(a.Y, b.Y);
 		if (!_v0.a.$) {
 			if (!_v0.b.$) {
 				var ca = _v0.a.a;
 				var cb = _v0.b.a;
-				return ca.aV + cb.aV;
+				return ca.aX + cb.aX;
 			} else {
 				var c = _v0.a.a;
 				var r = _v0.b.a;
-				return c.aV + (A2($elm$core$Basics$min, r.a5, r.aE) / 2);
+				return c.aX + (A2($elm$core$Basics$min, r.a7, r.aG) / 2);
 			}
 		} else {
 			if (!_v0.b.$) {
 				var r = _v0.a.a;
 				var c = _v0.b.a;
-				return (A2($elm$core$Basics$min, r.a5, r.aE) / 2) + c.aV;
+				return (A2($elm$core$Basics$min, r.a7, r.aG) / 2) + c.aX;
 			} else {
 				var ra = _v0.a.a;
 				var rb = _v0.b.a;
-				return (A2($elm$core$Basics$min, ra.a5, ra.aE) + A2($elm$core$Basics$min, rb.a5, rb.aE)) / 2;
+				return (A2($elm$core$Basics$min, ra.a7, ra.aG) + A2($elm$core$Basics$min, rb.a7, rb.aG)) / 2;
 			}
 		}
 	});
@@ -7558,9 +7710,6 @@ var $author$project$Model$vecDot = F2(
 	function (a, b) {
 		return (a.a * b.a) + (a.b * b.b);
 	});
-var $author$project$Model$vecLen = function (v) {
-	return $elm$core$Basics$sqrt((v.a * v.a) + (v.b * v.b));
-};
 var $author$project$Model$vecNorm = function (v) {
 	var l = $author$project$Model$vecLen(v);
 	return (l < 0.0001) ? {a: 0, b: 0} : {a: v.a / l, b: v.b / l};
@@ -7569,21 +7718,17 @@ var $author$project$Model$vecScale = F2(
 	function (s, v) {
 		return {a: v.a * s, b: v.b * s};
 	});
-var $author$project$Model$vecSub = F2(
-	function (a, b) {
-		return {a: a.a - b.a, b: a.b - b.b};
-	});
 var $author$project$Physics$Collisions$resolveBodyPair = F5(
 	function (trackEnergy, stepCount, a, b, result) {
 		var minDist = A2($author$project$Physics$Collisions$shapeMinDist, a, b);
 		var delta = A2($author$project$Model$vecSub, b.Q, a.Q);
 		var dist = $author$project$Model$vecLen(delta);
 		if ((_Utils_cmp(dist, minDist) < 0) && (dist > 0.001)) {
-			var totalMass = a.ab + b.ab;
-			var relVel = A2($author$project$Model$vecSub, a.an, b.an);
+			var totalMass = a.ac + b.ac;
+			var relVel = A2($author$project$Model$vecSub, a.ao, b.ao);
 			var overlap = minDist - dist;
-			var sepA = overlap * (b.ab / totalMass);
-			var sepB = overlap * (a.ab / totalMass);
+			var sepA = overlap * (b.ac / totalMass);
+			var sepB = overlap * (a.ac / totalMass);
 			var normal = $author$project$Model$vecNorm(delta);
 			var newPosB = A2(
 				$author$project$Model$vecAdd,
@@ -7597,20 +7742,20 @@ var $author$project$Physics$Collisions$resolveBodyPair = F5(
 			if (dvn > 0) {
 				var newBodies = A3(
 					$elm$core$Dict$insert,
-					b.aa,
+					b.W,
 					_Utils_update(
 						b,
 						{Q: newPosB}),
 					A3(
 						$elm$core$Dict$insert,
-						a.aa,
+						a.W,
 						_Utils_update(
 							a,
 							{Q: newPosA}),
-						result.bc));
+						result.aq));
 				return _Utils_update(
 					result,
-					{bc: newBodies});
+					{aq: newBodies});
 			} else {
 				var tangentVel = A2(
 					$author$project$Model$vecSub,
@@ -7618,13 +7763,13 @@ var $author$project$Physics$Collisions$resolveBodyPair = F5(
 					A2($author$project$Model$vecScale, dvn, normal));
 				var tangentLen = $author$project$Model$vecLen(tangentVel);
 				var restitution = A2($elm$core$Basics$min, a.G, b.G);
-				var j = ((-(1 + restitution)) * dvn) / ((1 / a.ab) + (1 / b.ab));
+				var j = ((-(1 + restitution)) * dvn) / ((1 / a.ac) + (1 / b.ac));
 				var inertiaB = $author$project$Physics$Collisions$bodyInertia(b);
 				var inertiaA = $author$project$Physics$Collisions$bodyInertia(a);
-				var impulseVecB = A2($author$project$Model$vecScale, j / b.ab, normal);
-				var newVelB = A2($author$project$Model$vecSub, b.an, impulseVecB);
-				var impulseVecA = A2($author$project$Model$vecScale, j / a.ab, normal);
-				var newVelA = A2($author$project$Model$vecAdd, a.an, impulseVecA);
+				var impulseVecB = A2($author$project$Model$vecScale, j / b.ac, normal);
+				var newVelB = A2($author$project$Model$vecSub, b.ao, impulseVecB);
+				var impulseVecA = A2($author$project$Model$vecScale, j / a.ac, normal);
+				var newVelA = A2($author$project$Model$vecAdd, a.ao, impulseVecA);
 				var contactPoint = A2(
 					$author$project$Model$vecAdd,
 					a.Q,
@@ -7634,19 +7779,19 @@ var $author$project$Physics$Collisions$resolveBodyPair = F5(
 						normal));
 				var rA = A2($author$project$Model$vecSub, contactPoint, a.Q);
 				var crossA = (rA.a * impulseVecA.b) - (rA.b * impulseVecA.a);
-				var newAngVelA = (inertiaA > 0) ? (a.Z + (crossA / inertiaA)) : a.Z;
+				var newAngVelA = (inertiaA > 0) ? (a.aa + (crossA / inertiaA)) : a.aa;
 				var rB = A2($author$project$Model$vecSub, contactPoint, b.Q);
 				var crossB = (rB.a * impulseVecB.b) - (rB.b * impulseVecB.a);
-				var newAngVelB = (inertiaB > 0) ? (b.Z - (crossB / inertiaB)) : b.Z;
-				var collisionEnergy = $elm$core$Basics$abs(dvn) * ((a.ab * b.ab) / totalMass);
+				var newAngVelB = (inertiaB > 0) ? (b.aa - (crossB / inertiaB)) : b.aa;
+				var collisionEnergy = $elm$core$Basics$abs(dvn) * ((a.ac * b.ac) / totalMass);
 				var event = {
-					a8: a.aa,
-					bb: $author$project$Model$BodyTarget(b.aa),
+					ba: a.W,
+					bd: $author$project$Model$BodyTarget(b.W),
 					V: collisionEnergy,
-					bm: j,
-					br: normal,
-					bw: contactPoint,
-					bF: stepCount
+					bp: j,
+					bz: normal,
+					bE: contactPoint,
+					bQ: stepCount
 				};
 				var _v0 = function () {
 					if (tangentLen > 0.01) {
@@ -7655,15 +7800,15 @@ var $author$project$Physics$Collisions$resolveBodyPair = F5(
 						var jt = A2(
 							$elm$core$Basics$min,
 							mu * $elm$core$Basics$abs(j),
-							tangentLen * ((a.ab * b.ab) / totalMass));
+							tangentLen * ((a.ac * b.ac) / totalMass));
 						var fricB = A2(
 							$author$project$Model$vecAdd,
 							newVelB,
-							A2($author$project$Model$vecScale, jt / b.ab, tangent));
+							A2($author$project$Model$vecScale, jt / b.ac, tangent));
 						var fricA = A2(
 							$author$project$Model$vecSub,
 							newVelA,
-							A2($author$project$Model$vecScale, jt / a.ab, tangent));
+							A2($author$project$Model$vecScale, jt / a.ac, tangent));
 						return _Utils_Tuple2(fricA, fricB);
 					} else {
 						return _Utils_Tuple2(newVelA, newVelB);
@@ -7674,26 +7819,26 @@ var $author$project$Physics$Collisions$resolveBodyPair = F5(
 				var newA = _Utils_update(
 					a,
 					{
-						Z: newAngVelA,
+						aa: newAngVelA,
 						V: trackEnergy ? (a.V + (collisionEnergy * 0.5)) : a.V,
 						Q: newPosA,
-						an: fricVelA
+						ao: fricVelA
 					});
 				var newB = _Utils_update(
 					b,
 					{
-						Z: newAngVelB,
+						aa: newAngVelB,
 						V: trackEnergy ? (b.V + (collisionEnergy * 0.5)) : b.V,
 						Q: newPosB,
-						an: fricVelB
+						ao: fricVelB
 					});
 				var newBodies = A3(
 					$elm$core$Dict$insert,
-					b.aa,
+					b.W,
 					newB,
-					A3($elm$core$Dict$insert, a.aa, newA, result.bc));
+					A3($elm$core$Dict$insert, a.W, newA, result.aq));
 				return {
-					bc: newBodies,
+					aq: newBodies,
 					O: A2($elm$core$List$cons, event, result.O)
 				};
 			}
@@ -7706,8 +7851,8 @@ var $author$project$Physics$Collisions$resolvePair = F4(
 		var idA = _v0.a;
 		var idB = _v0.b;
 		var _v1 = _Utils_Tuple2(
-			A2($elm$core$Dict$get, idA, result.bc),
-			A2($elm$core$Dict$get, idB, result.bc));
+			A2($elm$core$Dict$get, idA, result.aq),
+			A2($elm$core$Dict$get, idB, result.aq));
 		if ((!_v1.a.$) && (!_v1.b.$)) {
 			var a = _v1.a.a;
 			var b = _v1.b.a;
@@ -7733,14 +7878,14 @@ var $author$project$Physics$Collisions$resolveAll = F3(
 		return A3(
 			$elm$core$List$foldl,
 			A2($author$project$Physics$Collisions$resolvePair, trackEnergy, stepCount),
-			{bc: bodies, O: _List_Nil},
+			{aq: bodies, O: _List_Nil},
 			pairs);
 	});
 var $author$project$Physics$Collisions$detectAndResolve = F3(
 	function (mode, stepCount, bodies) {
 		switch (mode) {
 			case 0:
-				return {bc: bodies, O: _List_Nil};
+				return {aq: bodies, O: _List_Nil};
 			case 1:
 				return A3($author$project$Physics$Collisions$resolveAll, false, stepCount, bodies);
 			default:
@@ -7749,17 +7894,187 @@ var $author$project$Physics$Collisions$detectAndResolve = F3(
 	});
 var $author$project$Physics$Step$integrate = F3(
 	function (constraints, dt, body) {
-		var newVel = {a: (body.an.a + (constraints.aD.a * dt)) * constraints.aw, b: (body.an.b + (constraints.aD.b * dt)) * constraints.aw};
-		var newRot = body.ah + (body.Z * dt);
+		var newVel = {a: (body.ao.a + (constraints.aF.a * dt)) * constraints.ay, b: (body.ao.b + (constraints.aF.b * dt)) * constraints.ay};
+		var newRot = body.aj + (body.aa * dt);
 		var newPos = {a: body.Q.a + (newVel.a * dt), b: body.Q.b + (newVel.b * dt)};
-		var newAngVel = body.Z * constraints.aw;
+		var newAngVel = body.aa * constraints.ay;
 		return _Utils_update(
 			body,
-			{Z: newAngVel, Q: newPos, ah: newRot, an: newVel});
+			{aa: newAngVel, Q: newPos, aj: newRot, ao: newVel});
 	});
-var $author$project$Physics$Step$step = F4(
-	function (constraints, bounds, stepCount, bodies) {
-		var dt = 1.0 / constraints.a2;
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $author$project$Physics$ConstraintSolver$solveSpring = F6(
+	function (restLength, stiffness, dt, a, b, bodies) {
+		var delta = A2($author$project$Model$vecSub, b.Q, a.Q);
+		var dist = $author$project$Model$vecLen(delta);
+		var displacement = dist - restLength;
+		if (($elm$core$Basics$abs(displacement) > 0.01) && (dist > 0.001)) {
+			var normal = $author$project$Model$vecNorm(delta);
+			var invB = 1 / b.ac;
+			var invA = 1 / a.ac;
+			var invSum = invA + invB;
+			var force = ((stiffness * displacement) * dt) / 4;
+			var impulseA = A2($author$project$Model$vecScale, (force * invA) / invSum, normal);
+			var impulseB = A2($author$project$Model$vecScale, -((force * invB) / invSum), normal);
+			var damp = 0.98;
+			return A3(
+				$elm$core$Dict$insert,
+				b.W,
+				_Utils_update(
+					b,
+					{
+						ao: A2(
+							$author$project$Model$vecScale,
+							damp,
+							A2($author$project$Model$vecAdd, b.ao, impulseB))
+					}),
+				A3(
+					$elm$core$Dict$insert,
+					a.W,
+					_Utils_update(
+						a,
+						{
+							ao: A2(
+								$author$project$Model$vecScale,
+								damp,
+								A2($author$project$Model$vecAdd, a.ao, impulseA))
+						}),
+					bodies));
+		} else {
+			return bodies;
+		}
+	});
+var $author$project$Physics$ConstraintSolver$solveString = F4(
+	function (targetLength, a, b, bodies) {
+		var delta = A2($author$project$Model$vecSub, b.Q, a.Q);
+		var dist = $author$project$Model$vecLen(delta);
+		if ((_Utils_cmp(dist, targetLength) > 0) && (dist > 0.001)) {
+			var normal = $author$project$Model$vecNorm(delta);
+			var invB = 1 / b.ac;
+			var invA = 1 / a.ac;
+			var invSum = invA + invB;
+			var excess = dist - targetLength;
+			var corrB = A2($author$project$Model$vecScale, -((excess * invB) / invSum), normal);
+			var corrA = A2($author$project$Model$vecScale, (excess * invA) / invSum, normal);
+			return A3(
+				$elm$core$Dict$insert,
+				b.W,
+				_Utils_update(
+					b,
+					{
+						Q: A2($author$project$Model$vecAdd, b.Q, corrB)
+					}),
+				A3(
+					$elm$core$Dict$insert,
+					a.W,
+					_Utils_update(
+						a,
+						{
+							Q: A2($author$project$Model$vecAdd, a.Q, corrA)
+						}),
+					bodies));
+		} else {
+			return bodies;
+		}
+	});
+var $author$project$Physics$ConstraintSolver$solveWeld = F4(
+	function (offset, a, b, bodies) {
+		var targetPos = A2($author$project$Model$vecAdd, a.Q, offset);
+		var invB = 1 / b.ac;
+		var invA = 1 / a.ac;
+		var invSum = invA + invB;
+		var correction = A2($author$project$Model$vecSub, targetPos, b.Q);
+		var corrB = A2($author$project$Model$vecScale, invB / invSum, correction);
+		var corrA = A2($author$project$Model$vecScale, -(invA / invSum), correction);
+		var avgVel = {a: ((a.ao.a * a.ac) + (b.ao.a * b.ac)) / (a.ac + b.ac), b: ((a.ao.b * a.ac) + (b.ao.b * b.ac)) / (a.ac + b.ac)};
+		return A3(
+			$elm$core$Dict$insert,
+			b.W,
+			_Utils_update(
+				b,
+				{
+					Q: A2($author$project$Model$vecAdd, b.Q, corrB),
+					ao: avgVel
+				}),
+			A3(
+				$elm$core$Dict$insert,
+				a.W,
+				_Utils_update(
+					a,
+					{
+						Q: A2($author$project$Model$vecAdd, a.Q, corrA),
+						ao: avgVel
+					}),
+				bodies));
+	});
+var $author$project$Physics$ConstraintSolver$solveLinkKind = F5(
+	function (dt, kind, a, b, bodies) {
+		switch (kind.$) {
+			case 0:
+				var length = kind.a.bs;
+				return A4($author$project$Physics$ConstraintSolver$solveString, length, a, b, bodies);
+			case 1:
+				var restLength = kind.a.bH;
+				var stiffness = kind.a.bO;
+				return A6($author$project$Physics$ConstraintSolver$solveSpring, restLength, stiffness, dt, a, b, bodies);
+			case 2:
+				var maxLength = kind.a.by;
+				return A4($author$project$Physics$ConstraintSolver$solveString, maxLength, a, b, bodies);
+			default:
+				var relativeOffset = kind.a.bG;
+				return A4($author$project$Physics$ConstraintSolver$solveWeld, relativeOffset, a, b, bodies);
+		}
+	});
+var $author$project$Physics$ConstraintSolver$solveLink = F3(
+	function (dt, link, bodies) {
+		var _v0 = _Utils_Tuple2(
+			A2($elm$core$Dict$get, link.bf, bodies),
+			A2($elm$core$Dict$get, link.bg, bodies));
+		if ((!_v0.a.$) && (!_v0.b.$)) {
+			var a = _v0.a.a;
+			var b = _v0.b.a;
+			return A5($author$project$Physics$ConstraintSolver$solveLinkKind, dt, link.br, a, b, bodies);
+		} else {
+			return bodies;
+		}
+	});
+var $author$project$Physics$ConstraintSolver$solveIterations = F4(
+	function (n, linkList, dt, bodies) {
+		solveIterations:
+		while (true) {
+			if (n <= 0) {
+				return bodies;
+			} else {
+				var $temp$n = n - 1,
+					$temp$linkList = linkList,
+					$temp$dt = dt,
+					$temp$bodies = A3(
+					$elm$core$List$foldl,
+					$author$project$Physics$ConstraintSolver$solveLink(dt),
+					bodies,
+					linkList);
+				n = $temp$n;
+				linkList = $temp$linkList;
+				dt = $temp$dt;
+				bodies = $temp$bodies;
+				continue solveIterations;
+			}
+		}
+	});
+var $author$project$Physics$ConstraintSolver$solve = F3(
+	function (linkDict, dt, bodies) {
+		var linkList = $elm$core$Dict$values(linkDict);
+		return $elm$core$List$isEmpty(linkList) ? bodies : A4($author$project$Physics$ConstraintSolver$solveIterations, 4, linkList, dt, bodies);
+	});
+var $author$project$Physics$Step$step = F5(
+	function (constraints, bounds, stepCount, links, bodies) {
+		var dt = 1.0 / constraints.a4;
 		var integrated = A2(
 			$elm$core$Dict$map,
 			F2(
@@ -7767,16 +8082,17 @@ var $author$project$Physics$Step$step = F4(
 					return A3($author$project$Physics$Step$integrate, constraints, dt, b);
 				}),
 			bodies);
+		var constrained = A3($author$project$Physics$ConstraintSolver$solve, links, dt, integrated);
 		var bounded = A2(
 			$elm$core$Dict$map,
 			F2(
 				function (_v0, b) {
-					return A3($author$project$Physics$Step$applyBoundary, constraints.ap, bounds, b);
+					return A3($author$project$Physics$Step$applyBoundary, constraints.ar, bounds, b);
 				}),
-			integrated);
-		var collisionResult = A3($author$project$Physics$Collisions$detectAndResolve, constraints.at, stepCount, bounded);
-		var decayed = A2($author$project$Physics$Energy$decayEnergy, 0.95, collisionResult.bc);
-		return {bc: decayed, O: collisionResult.O};
+			constrained);
+		var collisionResult = A3($author$project$Physics$Collisions$detectAndResolve, constraints.av, stepCount, bounded);
+		var decayed = A2($author$project$Physics$Energy$decayEnergy, 0.95, collisionResult.aq);
+		return {aq: decayed, O: collisionResult.O};
 	});
 var $author$project$History$undo = F2(
 	function (current, history) {
@@ -7797,7 +8113,7 @@ var $author$project$History$undo = F2(
 	});
 var $author$project$Update$collisionAnnouncement = function (event) {
 	var targetStr = function () {
-		var _v0 = event.bb;
+		var _v0 = event.bd;
 		if (!_v0.$) {
 			var id = _v0.a;
 			return 'Body ' + $elm$core$String$fromInt(id);
@@ -7805,7 +8121,7 @@ var $author$project$Update$collisionAnnouncement = function (event) {
 			return 'boundary';
 		}
 	}();
-	return 'Collision: Body ' + ($elm$core$String$fromInt(event.a8) + (' hit ' + (targetStr + (' (energy: ' + ($elm$core$String$fromInt(
+	return 'Collision: Body ' + ($elm$core$String$fromInt(event.ba) + (' hit ' + (targetStr + (' (energy: ' + ($elm$core$String$fromInt(
 		$elm$core$Basics$round(event.V)) + ')')))));
 };
 var $author$project$Update$updateLogWithEvents = F2(
@@ -7823,7 +8139,7 @@ var $author$project$Update$updateLogWithEvents = F2(
 						_Utils_ap(
 							A2($elm$core$List$map, $author$project$Update$collisionAnnouncement, events),
 							log.N)),
-					aK: $elm$core$Maybe$Just(first)
+					aM: $elm$core$Maybe$Just(first)
 				});
 		}
 	});
@@ -7837,7 +8153,7 @@ var $author$project$Update$handleNonModifierKey = F2(
 			case 'p':
 				return A2($author$project$Update$update, $author$project$Update$ToggleRun, model);
 			case 'd':
-				var ui = model.am;
+				var ui = model.Z;
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Model$announce,
@@ -7845,13 +8161,13 @@ var $author$project$Update$handleNonModifierKey = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{aL: 0})
+									{aN: 0})
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 's':
-				var ui = model.am;
+				var ui = model.Z;
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Model$announce,
@@ -7859,15 +8175,15 @@ var $author$project$Update$handleNonModifierKey = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{aL: 1})
+									{aN: 1})
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 'r':
 				return A2($author$project$Update$update, $author$project$Update$ToggleRun, model);
 			case 'i':
-				var ui = model.am;
+				var ui = model.Z;
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Model$announce,
@@ -7875,9 +8191,9 @@ var $author$project$Update$handleNonModifierKey = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{aL: 3})
+									{aN: 3})
 							})),
 					$elm$core$Platform$Cmd$none);
 			case '1':
@@ -7895,6 +8211,11 @@ var $author$project$Update$handleNonModifierKey = F2(
 					$author$project$Update$update,
 					$author$project$Update$TogglePanel(1),
 					model);
+			case 'c':
+				return A2(
+					$author$project$Update$update,
+					$author$project$Update$TogglePanel(3),
+					model);
 			case '+':
 				return A2($author$project$Update$update, $author$project$Update$ZoomIn, model);
 			case '=':
@@ -7904,7 +8225,7 @@ var $author$project$Update$handleNonModifierKey = F2(
 			case '0':
 				return A2($author$project$Update$update, $author$project$Update$ZoomReset, model);
 			default:
-				var _v10 = model.am.aL;
+				var _v10 = model.Z.aN;
 				switch (_v10) {
 					case 0:
 						return _Utils_Tuple2(
@@ -7927,22 +8248,22 @@ var $author$project$Update$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 0:
-				if (model.a_.aY) {
-					var sim = model.a_;
-					var result = A4($author$project$Physics$Step$step, model.au, model.aq, sim.a$, model.bc);
+				if (model.a0.a_) {
+					var sim = model.a0;
+					var result = A5($author$project$Physics$Step$step, model.aw, model.as, sim.a1, model.bu, model.aq);
 					var cmds = A2(
 						$elm$core$List$map,
-						$author$project$Update$collisionToAudioCmd(model.bc),
+						$author$project$Update$collisionToAudioCmd(model.aq),
 						result.O);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								bc: result.bc,
-								bo: A2($author$project$Update$updateLogWithEvents, result.O, model.bo),
-								a_: _Utils_update(
+								aq: result.aq,
+								bv: A2($author$project$Update$updateLogWithEvents, result.O, model.bv),
+								a0: _Utils_update(
 									sim,
-									{a$: sim.a$ + 1})
+									{a1: sim.a1 + 1})
 							}),
 						$elm$core$Platform$Cmd$batch(cmds));
 				} else {
@@ -7952,17 +8273,17 @@ var $author$project$Update$update = F2(
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Model$announce,
-						model.a_.aY ? 'Paused.' : 'Running.',
+						model.a0.a_ ? 'Paused.' : 'Running.',
 						_Utils_update(
 							model,
 							{
-								a_: A2($author$project$Update$setSimRunning, !model.a_.aY, model.a_)
+								a0: A2($author$project$Update$setSimRunning, !model.a0.a_, model.a0)
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 3:
-				var ui = model.am;
+				var ui = model.Z;
 				var newMode = function () {
-					var _v1 = ui.aL;
+					var _v1 = ui.aN;
 					switch (_v1) {
 						case 0:
 							return 1;
@@ -7981,9 +8302,9 @@ var $author$project$Update$update = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{aL: newMode})
+									{aN: newMode})
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 4:
@@ -7995,9 +8316,11 @@ var $author$project$Update$update = F2(
 						_Utils_update(
 							snapped,
 							{
-								bc: $elm$core$Dict$empty,
-								ae: 1,
-								am: A2($author$project$Update$setSelected, $elm$core$Maybe$Nothing, snapped.am)
+								aq: $elm$core$Dict$empty,
+								bu: $elm$core$Dict$empty,
+								af: 1,
+								ag: 1,
+								Z: A2($author$project$Update$setSelected, $elm$core$Maybe$Nothing, snapped.Z)
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 5:
@@ -8008,46 +8331,46 @@ var $author$project$Update$update = F2(
 				var cy = msg.b;
 				return A3($author$project$Update$handlePointerMove, cx, cy, model);
 			case 7:
-				var ui = model.am;
+				var ui = model.Z;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							am: _Utils_update(
+							Z: _Utils_update(
 								ui,
-								{aP: $author$project$Model$Idle})
+								{aR: $author$project$Model$Idle})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 8:
 				var deltaY = msg.a;
 				var factor = (deltaY < 0) ? 1.1 : (1 / 1.1);
-				var camera = model.ar;
-				var newZoom = A3($elm$core$Basics$clamp, 0.25, 4.0, camera.Y * factor);
+				var camera = model.at;
+				var newZoom = A3($elm$core$Basics$clamp, 0.25, 4.0, camera._ * factor);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							ar: _Utils_update(
+							at: _Utils_update(
 								camera,
-								{Y: newZoom})
+								{_: newZoom})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 9:
 				var panel = msg.a;
-				var ui = model.am;
-				var newPanel = _Utils_eq(ui.bv, panel) ? 0 : panel;
+				var ui = model.Z;
+				var newPanel = _Utils_eq(ui.bD, panel) ? 0 : panel;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							am: _Utils_update(
+							Z: _Utils_update(
 								ui,
-								{bv: newPanel})
+								{bD: newPanel})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 10:
 				var matName = msg.a;
-				var ui = model.am;
+				var ui = model.Z;
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Model$announce,
@@ -8055,9 +8378,9 @@ var $author$project$Update$update = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{a9: matName})
+									{bb: matName})
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 11:
@@ -8067,7 +8390,7 @@ var $author$project$Update$update = F2(
 					$elm$core$Platform$Cmd$none);
 			case 12:
 				var current = $author$project$Update$makeSnapshot(model);
-				var _v2 = A2($author$project$History$undo, current, model.aG);
+				var _v2 = A2($author$project$History$undo, current, model.aI);
 				if (!_v2.$) {
 					var _v3 = _v2.a;
 					var snap = _v3.a;
@@ -8078,14 +8401,14 @@ var $author$project$Update$update = F2(
 							'Undo.',
 							_Utils_update(
 								model,
-								{bc: snap.bc, aG: newHistory, ae: snap.ae})),
+								{aq: snap.aq, aI: newHistory, bu: snap.bu, af: snap.af, ag: snap.ag})),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 13:
 				var current = $author$project$Update$makeSnapshot(model);
-				var _v4 = A2($author$project$History$redo, current, model.aG);
+				var _v4 = A2($author$project$History$redo, current, model.aI);
 				if (!_v4.$) {
 					var _v5 = _v4.a;
 					var snap = _v5.a;
@@ -8096,33 +8419,33 @@ var $author$project$Update$update = F2(
 							'Redo.',
 							_Utils_update(
 								model,
-								{bc: snap.bc, aG: newHistory, ae: snap.ae})),
+								{aq: snap.aq, aI: newHistory, bu: snap.bu, af: snap.af, ag: snap.ag})),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 14:
-				var camera = model.ar;
-				var newZoom = A3($elm$core$Basics$clamp, 0.25, 4.0, camera.Y * 1.15);
+				var camera = model.at;
+				var newZoom = A3($elm$core$Basics$clamp, 0.25, 4.0, camera._ * 1.15);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							ar: _Utils_update(
+							at: _Utils_update(
 								camera,
-								{Y: newZoom})
+								{_: newZoom})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 15:
-				var camera = model.ar;
-				var newZoom = A3($elm$core$Basics$clamp, 0.25, 4.0, camera.Y / 1.15);
+				var camera = model.at;
+				var newZoom = A3($elm$core$Basics$clamp, 0.25, 4.0, camera._ / 1.15);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							ar: _Utils_update(
+							at: _Utils_update(
 								camera,
-								{Y: newZoom})
+								{_: newZoom})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 16:
@@ -8130,12 +8453,12 @@ var $author$project$Update$update = F2(
 					_Utils_update(
 						model,
 						{
-							ar: {W: $author$project$Model$vecZero, Y: 1.0}
+							at: {X: $author$project$Model$vecZero, _: 1.0}
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 17:
 				var tool = msg.a;
-				var ui = model.am;
+				var ui = model.Z;
 				var toolName = function () {
 					if (!tool) {
 						return 'Circle tool selected.';
@@ -8150,9 +8473,9 @@ var $author$project$Update$update = F2(
 						_Utils_update(
 							model,
 							{
-								am: _Utils_update(
+								Z: _Utils_update(
 									ui,
-									{ay: tool})
+									{aA: tool})
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 18:
@@ -8167,7 +8490,7 @@ var $author$project$Update$update = F2(
 							return 'Boundary: Clamp';
 					}
 				}();
-				var constraints = model.au;
+				var constraints = model.aw;
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Model$announce,
@@ -8175,9 +8498,9 @@ var $author$project$Update$update = F2(
 						_Utils_update(
 							model,
 							{
-								au: _Utils_update(
+								aw: _Utils_update(
 									constraints,
-									{ap: mode})
+									{ar: mode})
 							})),
 					$elm$core$Platform$Cmd$none);
 			case 19:
@@ -8192,7 +8515,7 @@ var $author$project$Update$update = F2(
 							return 'Collisions: Energetic';
 					}
 				}();
-				var constraints = model.au;
+				var constraints = model.aw;
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Model$announce,
@@ -8200,16 +8523,60 @@ var $author$project$Update$update = F2(
 						_Utils_update(
 							model,
 							{
-								au: _Utils_update(
+								aw: _Utils_update(
 									constraints,
-									{at: mode})
+									{av: mode})
 							})),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 1:
 				var key = msg.a;
 				var ctrl = msg.b;
 				var shift = msg.c;
 				return A4($author$project$Update$handleKey, key, ctrl, shift, model);
+			case 20:
+				var kind = msg.a;
+				var ui = model.Z;
+				return _Utils_Tuple2(
+					A2(
+						$author$project$Model$announce,
+						'Click the first body.',
+						_Utils_update(
+							model,
+							{
+								Z: _Utils_update(
+									ui,
+									{
+										bt: $author$project$Model$PickingFirst(kind)
+									})
+							})),
+					$elm$core$Platform$Cmd$none);
+			case 21:
+				var ui = model.Z;
+				return _Utils_Tuple2(
+					A2(
+						$author$project$Model$announce,
+						'Constraint creation cancelled.',
+						_Utils_update(
+							model,
+							{
+								Z: _Utils_update(
+									ui,
+									{bt: $author$project$Model$NotCreating})
+							})),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var linkId = msg.a;
+				var snapped = $author$project$Update$pushSnapshot(model);
+				return _Utils_Tuple2(
+					A2(
+						$author$project$Model$announce,
+						'Constraint deleted.',
+						_Utils_update(
+							snapped,
+							{
+								bu: A2($elm$core$Dict$remove, linkId, snapped.bu)
+							})),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $author$project$Update$Clear = {$: 4};
@@ -8221,7 +8588,7 @@ var $author$project$Update$SetCollisionMode = function (a) {
 };
 var $author$project$Update$ToggleMode = {$: 3};
 var $author$project$Model$currentAnnouncement = function (model) {
-	var _v0 = model.bo.N;
+	var _v0 = model.bv.N;
 	if (_v0.b) {
 		var first = _v0.a;
 		return first;
@@ -8522,33 +8889,38 @@ var $author$project$View$Controls$viewControls = F2(
 				[
 					A2(
 					$author$project$View$Controls$controlButton,
-					model.a_.aY ? 'Pause' : 'Play',
-					msgs.bJ),
+					model.a0.a_ ? 'Pause' : 'Play',
+					msgs.bU),
 					A2(
 					$author$project$View$Controls$controlButton,
-					$author$project$View$Controls$modeButtonLabel(model.am.aL),
-					msgs.bH),
-					A2($author$project$View$Controls$controlButton, 'Clear', msgs.bf),
+					$author$project$View$Controls$modeButtonLabel(model.Z.aN),
+					msgs.bS),
+					A2($author$project$View$Controls$controlButton, 'Clear', msgs.bi),
 					$author$project$View$Controls$sep,
-					A2($author$project$View$Controls$controlButton, 'Undo', msgs.bK),
-					A2($author$project$View$Controls$controlButton, 'Redo', msgs.bx),
+					A2($author$project$View$Controls$controlButton, 'Undo', msgs.bV),
+					A2($author$project$View$Controls$controlButton, 'Redo', msgs.bF),
 					$author$project$View$Controls$sep,
-					A2($author$project$View$Controls$viewDrawToolPicker, model.am.ay, msgs.bC),
+					A2($author$project$View$Controls$viewDrawToolPicker, model.Z.aA, msgs.bM),
 					A3(
 					$author$project$View$Controls$toolButton,
 					'Mat (M)',
-					model.am.bv === 1,
-					msgs.bI(1)),
+					model.Z.bD === 1,
+					msgs.bT(1)),
 					A3(
 					$author$project$View$Controls$toolButton,
 					'Props (P)',
-					model.am.bv === 2,
-					msgs.bI(2)),
+					model.Z.bD === 2,
+					msgs.bT(2)),
+					A3(
+					$author$project$View$Controls$toolButton,
+					'Links (C)',
+					model.Z.bD === 3,
+					msgs.bT(3)),
 					$author$project$View$Controls$sep,
-					A2($author$project$View$Controls$viewBoundaryPicker, model.au.ap, msgs.bA),
-					A2($author$project$View$Controls$viewCollisionPicker, model.au.at, msgs.bB),
+					A2($author$project$View$Controls$viewBoundaryPicker, model.aw.ar, msgs.bK),
+					A2($author$project$View$Controls$viewCollisionPicker, model.aw.av, msgs.bL),
 					$author$project$View$Controls$sep,
-					A2($author$project$View$Controls$zoomButton, '-', msgs.bP),
+					A2($author$project$View$Controls$zoomButton, '-', msgs.b_),
 					A2(
 					$elm$html$Html$span,
 					_List_fromArray(
@@ -8563,10 +8935,10 @@ var $author$project$View$Controls$viewControls = F2(
 						[
 							$elm$html$Html$text(
 							$elm$core$String$fromInt(
-								$elm$core$Basics$round(model.ar.Y * 100)) + '%')
+								$elm$core$Basics$round(model.at._ * 100)) + '%')
 						])),
-					A2($author$project$View$Controls$zoomButton, '+', msgs.bO),
-					A2($author$project$View$Controls$zoomButton, '1:1', msgs.bQ),
+					A2($author$project$View$Controls$zoomButton, '+', msgs.bZ),
+					A2($author$project$View$Controls$zoomButton, '1:1', msgs.b$),
 					A2(
 					$elm$html$Html$span,
 					_List_fromArray(
@@ -8580,17 +8952,10 @@ var $author$project$View$Controls$viewControls = F2(
 						[
 							$elm$html$Html$text(
 							'Bodies: ' + ($elm$core$String$fromInt(
-								$elm$core$Dict$size(model.bc)) + ('  Step: ' + $elm$core$String$fromInt(model.a_.a$))))
+								$elm$core$Dict$size(model.aq)) + ('  Step: ' + $elm$core$String$fromInt(model.a0.a1))))
 						]))
 				]));
 	});
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
 var $author$project$View$A11y$viewEventLog = function (log) {
 	var items = A2($elm$core$List$take, 5, log.N);
 	return A2(
@@ -8644,12 +9009,12 @@ var $author$project$View$Inspector$floatToStr = F2(
 	});
 var $author$project$View$Inspector$shapeDescription = function (shape) {
 	if (!shape.$) {
-		var r = shape.a.aV;
+		var r = shape.a.aX;
 		return 'Circle (r=' + ($elm$core$String$fromInt(
 			$elm$core$Basics$round(r)) + ')');
 	} else {
-		var w = shape.a.a5;
-		var h = shape.a.aE;
+		var w = shape.a.a7;
+		var h = shape.a.aG;
 		return 'Rect (' + ($elm$core$String$fromInt(
 			$elm$core$Basics$round(w)) + ('x' + ($elm$core$String$fromInt(
 			$elm$core$Basics$round(h)) + ')')));
@@ -8687,7 +9052,7 @@ var $author$project$View$Inspector$viewProp = F2(
 				]));
 	});
 var $author$project$View$Inspector$viewBodyDetails = function (body) {
-	var mat = $author$project$Material$getMaterial(body.ac);
+	var mat = $author$project$Material$getMaterial(body.ad);
 	return _List_fromArray(
 		[
 			A2(
@@ -8705,7 +9070,7 @@ var $author$project$View$Inspector$viewBodyDetails = function (body) {
 			A2(
 			$author$project$View$Inspector$viewProp,
 			'Shape',
-			$author$project$View$Inspector$shapeDescription(body.X)),
+			$author$project$View$Inspector$shapeDescription(body.Y)),
 			A2($author$project$View$Inspector$viewProp, 'Material', mat.n),
 			A2(
 			$author$project$View$Inspector$viewProp,
@@ -8717,12 +9082,12 @@ var $author$project$View$Inspector$viewBodyDetails = function (body) {
 			$author$project$View$Inspector$viewProp,
 			'Velocity',
 			$elm$core$String$fromInt(
-				$elm$core$Basics$round(body.an.a)) + (', ' + $elm$core$String$fromInt(
-				$elm$core$Basics$round(body.an.b)))),
+				$elm$core$Basics$round(body.ao.a)) + (', ' + $elm$core$String$fromInt(
+				$elm$core$Basics$round(body.ao.b)))),
 			A2(
 			$author$project$View$Inspector$viewProp,
 			'Mass',
-			A2($author$project$View$Inspector$floatToStr, 2, body.ab)),
+			A2($author$project$View$Inspector$floatToStr, 2, body.ac)),
 			A2(
 			$author$project$View$Inspector$viewProp,
 			'Energy',
@@ -8735,15 +9100,15 @@ var $author$project$View$Inspector$viewBodyDetails = function (body) {
 			$author$project$View$Inspector$viewProp,
 			'Bounce',
 			A2($author$project$View$Inspector$floatToStr, 2, body.G)),
-			$elm$core$List$isEmpty(body.al) ? $elm$html$Html$text('') : A2(
+			$elm$core$List$isEmpty(body.an) ? $elm$html$Html$text('') : A2(
 			$author$project$View$Inspector$viewProp,
 			'Tags',
-			A2($elm$core$String$join, ', ', body.al))
+			A2($elm$core$String$join, ', ', body.an))
 		]);
 };
 var $author$project$View$Inspector$viewInspector = function (model) {
 	var content = function () {
-		var _v0 = model.am.bz;
+		var _v0 = model.Z.bJ;
 		if (_v0.$ === 1) {
 			return _List_fromArray(
 				[
@@ -8760,7 +9125,7 @@ var $author$project$View$Inspector$viewInspector = function (model) {
 				]);
 		} else {
 			var id = _v0.a;
-			var _v1 = A2($elm$core$Dict$get, id, model.bc);
+			var _v1 = A2($elm$core$Dict$get, id, model.aq);
 			if (_v1.$ === 1) {
 				return _List_fromArray(
 					[
@@ -8801,9 +9166,400 @@ var $author$project$View$Inspector$viewInspector = function (model) {
 var $author$project$Update$AdjustProperty = function (a) {
 	return {$: 11, a: a};
 };
+var $author$project$Update$CancelLinkCreation = {$: 21};
+var $author$project$Update$DeleteLink = function (a) {
+	return {$: 22, a: a};
+};
 var $author$project$Update$SelectMaterial = function (a) {
 	return {$: 10, a: a};
 };
+var $author$project$Update$StartLinkCreation = function (a) {
+	return {$: 20, a: a};
+};
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
+var $author$project$View$ConstraintPanel$linkTypeButton = F4(
+	function (label, color, enabled, msg) {
+		return A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Events$onClick(msg),
+					$elm$html$Html$Attributes$disabled(!enabled),
+					A2($elm$html$Html$Attributes$style, 'padding', '6px 8px'),
+					A2(
+					$elm$html$Html$Attributes$style,
+					'background',
+					enabled ? '#1a1a24' : '#0f0f15'),
+					A2($elm$html$Html$Attributes$style, 'color', color),
+					A2($elm$html$Html$Attributes$style, 'border', '1px solid ' + color),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '4px'),
+					A2(
+					$elm$html$Html$Attributes$style,
+					'cursor',
+					enabled ? 'pointer' : 'not-allowed'),
+					A2($elm$html$Html$Attributes$style, 'font-size', '11px'),
+					A2($elm$html$Html$Attributes$style, 'font-family', 'inherit'),
+					A2(
+					$elm$html$Html$Attributes$style,
+					'opacity',
+					enabled ? '1' : '0.4'),
+					A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Create ' + (label + ' constraint'))
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(label)
+				]));
+	});
+var $elm$html$Html$br = _VirtualDom_node('br');
+var $author$project$View$ConstraintPanel$viewCreationStatus = F2(
+	function (creation, cancelCreate) {
+		switch (creation.$) {
+			case 0:
+				return $elm$html$Html$text('');
+			case 1:
+				return A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background', '#1a2a1a'),
+							A2($elm$html$Html$Attributes$style, 'border', '1px solid #2a4a2a'),
+							A2($elm$html$Html$Attributes$style, 'border-radius', '4px'),
+							A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+							A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px'),
+							A2($elm$html$Html$Attributes$style, 'font-size', '11px'),
+							A2($elm$html$Html$Attributes$style, 'color', '#88cc88')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Click the first body...'),
+							A2($elm$html$Html$br, _List_Nil, _List_Nil),
+							A2(
+							$elm$html$Html$button,
+							_List_fromArray(
+								[
+									$elm$html$Html$Events$onClick(cancelCreate),
+									A2($elm$html$Html$Attributes$style, 'margin-top', '4px'),
+									A2($elm$html$Html$Attributes$style, 'background', '#2a2a3a'),
+									A2($elm$html$Html$Attributes$style, 'border', '1px solid #3a3a4a'),
+									A2($elm$html$Html$Attributes$style, 'border-radius', '3px'),
+									A2($elm$html$Html$Attributes$style, 'color', '#7a7a8e'),
+									A2($elm$html$Html$Attributes$style, 'cursor', 'pointer'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10px'),
+									A2($elm$html$Html$Attributes$style, 'padding', '2px 6px')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Cancel')
+								]))
+						]));
+			default:
+				var bodyA = creation.b;
+				return A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background', '#1a2a1a'),
+							A2($elm$html$Html$Attributes$style, 'border', '1px solid #2a4a2a'),
+							A2($elm$html$Html$Attributes$style, 'border-radius', '4px'),
+							A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+							A2($elm$html$Html$Attributes$style, 'margin-bottom', '8px'),
+							A2($elm$html$Html$Attributes$style, 'font-size', '11px'),
+							A2($elm$html$Html$Attributes$style, 'color', '#88cc88')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							'Body ' + ($elm$core$String$fromInt(bodyA) + ' selected.')),
+							A2($elm$html$Html$br, _List_Nil, _List_Nil),
+							$elm$html$Html$text('Click the second body...'),
+							A2($elm$html$Html$br, _List_Nil, _List_Nil),
+							A2(
+							$elm$html$Html$button,
+							_List_fromArray(
+								[
+									$elm$html$Html$Events$onClick(cancelCreate),
+									A2($elm$html$Html$Attributes$style, 'margin-top', '4px'),
+									A2($elm$html$Html$Attributes$style, 'background', '#2a2a3a'),
+									A2($elm$html$Html$Attributes$style, 'border', '1px solid #3a3a4a'),
+									A2($elm$html$Html$Attributes$style, 'border-radius', '3px'),
+									A2($elm$html$Html$Attributes$style, 'color', '#7a7a8e'),
+									A2($elm$html$Html$Attributes$style, 'cursor', 'pointer'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10px'),
+									A2($elm$html$Html$Attributes$style, 'padding', '2px 6px')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Cancel')
+								]))
+						]));
+		}
+	});
+var $author$project$View$ConstraintPanel$linkKindColor = function (kind) {
+	switch (kind.$) {
+		case 0:
+			return '#88aa55';
+		case 1:
+			return '#55aa88';
+		case 2:
+			return '#aa8855';
+		default:
+			return '#aa5555';
+	}
+};
+var $author$project$View$ConstraintPanel$linkKindLabel = function (kind) {
+	switch (kind.$) {
+		case 0:
+			return 'String';
+		case 1:
+			return 'Spring';
+		case 2:
+			return 'Rope';
+		default:
+			return 'Weld';
+	}
+};
+var $author$project$View$ConstraintPanel$viewLinkItem = F3(
+	function (bodies, deleteLink, link) {
+		var nameB = A2(
+			$elm$core$Maybe$withDefault,
+			'Body ' + $elm$core$String$fromInt(link.bg),
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Model$bodyLabel,
+				A2($elm$core$Dict$get, link.bg, bodies)));
+		var nameA = A2(
+			$elm$core$Maybe$withDefault,
+			'Body ' + $elm$core$String$fromInt(link.bf),
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Model$bodyLabel,
+				A2($elm$core$Dict$get, link.bf, bodies)));
+		var kindLabel = $author$project$View$ConstraintPanel$linkKindLabel(link.br);
+		var color = $author$project$View$ConstraintPanel$linkKindColor(link.br);
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+					A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
+					A2($elm$html$Html$Attributes$style, 'gap', '6px'),
+					A2($elm$html$Html$Attributes$style, 'padding', '4px 6px'),
+					A2($elm$html$Html$Attributes$style, 'background', '#0f0f17'),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '3px'),
+					A2($elm$html$Html$Attributes$style, 'font-size', '10px')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'color', color),
+							A2($elm$html$Html$Attributes$style, 'font-weight', '500')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(kindLabel)
+						])),
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'color', '#7a7a8e'),
+							A2($elm$html$Html$Attributes$style, 'flex', '1')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(nameA + (' - ' + nameB))
+						])),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick(
+							deleteLink(link.W)),
+							A2($elm$html$Html$Attributes$style, 'background', 'none'),
+							A2($elm$html$Html$Attributes$style, 'border', 'none'),
+							A2($elm$html$Html$Attributes$style, 'color', '#aa4444'),
+							A2($elm$html$Html$Attributes$style, 'cursor', 'pointer'),
+							A2($elm$html$Html$Attributes$style, 'font-size', '10px'),
+							A2($elm$html$Html$Attributes$style, 'padding', '0 2px'),
+							A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Delete ' + (kindLabel + ' constraint'))
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('x')
+						]))
+				]));
+	});
+var $author$project$View$ConstraintPanel$viewLinkList = F3(
+	function (links, bodies, deleteLink) {
+		var linkList = $elm$core$Dict$values(links);
+		return $elm$core$List$isEmpty(linkList) ? A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'font-size', '11px'),
+					A2($elm$html$Html$Attributes$style, 'color', '#5a5a6e'),
+					A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+					A2($elm$html$Html$Attributes$style, 'padding', '8px')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('No constraints yet.')
+				])) : A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'font-size', '10px'),
+							A2($elm$html$Html$Attributes$style, 'color', '#7a7a8e'),
+							A2($elm$html$Html$Attributes$style, 'margin-bottom', '4px')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							'Active (' + ($elm$core$String$fromInt(
+								$elm$core$List$length(linkList)) + ')'))
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+							A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
+							A2($elm$html$Html$Attributes$style, 'gap', '3px')
+						]),
+					A2(
+						$elm$core$List$map,
+						A2($author$project$View$ConstraintPanel$viewLinkItem, bodies, deleteLink),
+						linkList))
+				]));
+	});
+var $author$project$View$ConstraintPanel$viewConstraintPanel = F7(
+	function (creation, links, bodies, startCreate, deleteLink, cancelCreate, closeMsg) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+					A2($elm$html$Html$Attributes$style, 'top', '8px'),
+					A2($elm$html$Html$Attributes$style, 'right', '8px'),
+					A2($elm$html$Html$Attributes$style, 'background', '#13131a'),
+					A2($elm$html$Html$Attributes$style, 'border', '1px solid #2a2a3a'),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
+					A2($elm$html$Html$Attributes$style, 'padding', '12px'),
+					A2($elm$html$Html$Attributes$style, 'z-index', '100'),
+					A2($elm$html$Html$Attributes$style, 'min-width', '200px'),
+					A2($elm$html$Html$Attributes$style, 'max-height', '400px'),
+					A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto'),
+					A2($elm$html$Html$Attributes$attribute, 'role', 'dialog'),
+					A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Constraints panel')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+							A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between'),
+							A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
+							A2($elm$html$Html$Attributes$style, 'margin-bottom', '10px')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$span,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'font-size', '13px'),
+									A2($elm$html$Html$Attributes$style, 'font-weight', '500'),
+									A2($elm$html$Html$Attributes$style, 'color', '#e0e0ec')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Constraints')
+								])),
+							A2(
+							$elm$html$Html$button,
+							_List_fromArray(
+								[
+									$elm$html$Html$Events$onClick(closeMsg),
+									A2($elm$html$Html$Attributes$style, 'background', 'none'),
+									A2($elm$html$Html$Attributes$style, 'border', 'none'),
+									A2($elm$html$Html$Attributes$style, 'color', '#7a7a8e'),
+									A2($elm$html$Html$Attributes$style, 'cursor', 'pointer'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '14px'),
+									A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Close constraints panel')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text('x')
+								]))
+						])),
+					A2($author$project$View$ConstraintPanel$viewCreationStatus, creation, cancelCreate),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'display', 'grid'),
+							A2($elm$html$Html$Attributes$style, 'grid-template-columns', '1fr 1fr'),
+							A2($elm$html$Html$Attributes$style, 'gap', '4px'),
+							A2($elm$html$Html$Attributes$style, 'margin-bottom', '10px')
+						]),
+					_List_fromArray(
+						[
+							A4(
+							$author$project$View$ConstraintPanel$linkTypeButton,
+							'String',
+							'#88aa55',
+							_Utils_eq(creation, $author$project$Model$NotCreating),
+							startCreate(
+								$author$project$Model$StringLink(
+									{bs: 0}))),
+							A4(
+							$author$project$View$ConstraintPanel$linkTypeButton,
+							'Spring',
+							'#55aa88',
+							_Utils_eq(creation, $author$project$Model$NotCreating),
+							startCreate(
+								$author$project$Model$SpringLink(
+									{bH: 0, bO: 100}))),
+							A4(
+							$author$project$View$ConstraintPanel$linkTypeButton,
+							'Rope',
+							'#aa8855',
+							_Utils_eq(creation, $author$project$Model$NotCreating),
+							startCreate(
+								$author$project$Model$RopeLink(
+									{by: 0}))),
+							A4(
+							$author$project$View$ConstraintPanel$linkTypeButton,
+							'Weld',
+							'#aa5555',
+							_Utils_eq(creation, $author$project$Model$NotCreating),
+							startCreate(
+								$author$project$Model$WeldLink(
+									{
+										bG: {a: 0, b: 0}
+									})))
+						])),
+					A3($author$project$View$ConstraintPanel$viewLinkList, links, bodies, deleteLink)
+				]));
+	});
 var $author$project$View$MaterialPanel$materialSwatch = F3(
 	function (activeName, selectMsg, mat) {
 		var isActive = _Utils_eq(mat.n, activeName);
@@ -9164,9 +9920,9 @@ var $author$project$View$PropertiesPanel$viewPropertiesPanel = F3(
 							$author$project$View$PropertiesPanel$AdjPosY(d));
 					}),
 					function () {
-					var _v0 = body.X;
+					var _v0 = body.Y;
 					if (!_v0.$) {
-						var r = _v0.a.aV;
+						var r = _v0.a.aX;
 						return A4(
 							$author$project$View$PropertiesPanel$propRow,
 							'Radius',
@@ -9177,8 +9933,8 @@ var $author$project$View$PropertiesPanel$viewPropertiesPanel = F3(
 									$author$project$View$PropertiesPanel$AdjRadius(d));
 							});
 					} else {
-						var w = _v0.a.a5;
-						var h = _v0.a.aE;
+						var w = _v0.a.a7;
+						var h = _v0.a.aG;
 						return A2(
 							$elm$html$Html$div,
 							_List_Nil,
@@ -9208,7 +9964,7 @@ var $author$project$View$PropertiesPanel$viewPropertiesPanel = F3(
 					A4(
 					$author$project$View$PropertiesPanel$propRowFloat,
 					'Mass',
-					body.ab,
+					body.ac,
 					0.5,
 					function (d) {
 						return changeMsg(
@@ -9235,21 +9991,21 @@ var $author$project$View$PropertiesPanel$viewPropertiesPanel = F3(
 				]));
 	});
 var $author$project$Main$viewPanelOverlay = function (model) {
-	var _v0 = model.am.bv;
+	var _v0 = model.Z.bD;
 	switch (_v0) {
 		case 0:
 			return $elm$html$Html$text('');
 		case 1:
 			return A3(
 				$author$project$View$MaterialPanel$viewMaterialPanel,
-				model.am.a9,
+				model.Z.bb,
 				$author$project$Update$SelectMaterial,
 				$author$project$Update$TogglePanel(1));
-		default:
-			var _v1 = model.am.bz;
+		case 2:
+			var _v1 = model.Z.bJ;
 			if (!_v1.$) {
 				var id = _v1.a;
-				var _v2 = A2($elm$core$Dict$get, id, model.bc);
+				var _v2 = A2($elm$core$Dict$get, id, model.aq);
 				if (!_v2.$) {
 					var body = _v2.a;
 					return A3(
@@ -9281,6 +10037,16 @@ var $author$project$Main$viewPanelOverlay = function (model) {
 							$elm$html$Html$text('Select a body first.')
 						]));
 			}
+		default:
+			return A7(
+				$author$project$View$ConstraintPanel$viewConstraintPanel,
+				model.Z.bt,
+				model.bu,
+				model.aq,
+				$author$project$Update$StartLinkCreation,
+				$author$project$Update$DeleteLink,
+				$author$project$Update$CancelLinkCreation,
+				$author$project$Update$TogglePanel(3));
 	}
 };
 var $author$project$View$Svg$PointerDownOnBg = F4(
@@ -9325,7 +10091,7 @@ var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $author$project$View$Svg$rotateTransform = function (body) {
-	return ($elm$core$Basics$abs(body.ah) > 0.01) ? ('rotate(' + ($elm$core$String$fromFloat((body.ah * 180) / $elm$core$Basics$pi) + (' ' + ($elm$core$String$fromFloat(body.Q.a) + (' ' + ($elm$core$String$fromFloat(body.Q.b) + ')')))))) : '';
+	return ($elm$core$Basics$abs(body.aj) > 0.01) ? ('rotate(' + ($elm$core$String$fromFloat((body.aj * 180) / $elm$core$Basics$pi) + (' ' + ($elm$core$String$fromFloat(body.Q.a) + (' ' + ($elm$core$String$fromFloat(body.Q.b) + ')')))))) : '';
 };
 var $elm$svg$Svg$Attributes$rx = _VirtualDom_attribute('rx');
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
@@ -9337,9 +10103,9 @@ var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
 var $author$project$View$Svg$energyRing = F2(
 	function (glow, body) {
 		if (glow > 0.05) {
-			var _v0 = body.X;
+			var _v0 = body.Y;
 			if (!_v0.$) {
-				var r = _v0.a.aV;
+				var r = _v0.a.aX;
 				return _List_fromArray(
 					[
 						A2(
@@ -9361,8 +10127,8 @@ var $author$project$View$Svg$energyRing = F2(
 						_List_Nil)
 					]);
 			} else {
-				var w = _v0.a.a5;
-				var h = _v0.a.aE;
+				var w = _v0.a.a7;
+				var h = _v0.a.aG;
 				var offset = 2 + (glow * 8);
 				return _List_fromArray(
 					[
@@ -9399,9 +10165,9 @@ var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dash
 var $author$project$View$Svg$selectionRing = F2(
 	function (isSelected, body) {
 		if (isSelected) {
-			var _v0 = body.X;
+			var _v0 = body.Y;
 			if (!_v0.$) {
-				var r = _v0.a.aV;
+				var r = _v0.a.aX;
 				return _List_fromArray(
 					[
 						A2(
@@ -9423,8 +10189,8 @@ var $author$project$View$Svg$selectionRing = F2(
 						_List_Nil)
 					]);
 			} else {
-				var w = _v0.a.a5;
-				var h = _v0.a.aE;
+				var w = _v0.a.a7;
+				var h = _v0.a.aG;
 				return _List_fromArray(
 					[
 						A2(
@@ -9497,7 +10263,7 @@ var $elm$svg$Svg$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$svg$Svg$title = $elm$svg$Svg$trustedNode('title');
 var $author$project$View$Svg$viewShape = F3(
 	function (isSelected, toMsg, body) {
-		var mat = $author$project$Material$getMaterial(body.ac);
+		var mat = $author$project$Material$getMaterial(body.ad);
 		var label = $author$project$Model$bodyLabel(body);
 		var ariaLabel = label + (' (' + (mat.n + (') at ' + ($elm$core$String$fromInt(
 			$elm$core$Basics$round(body.Q.a)) + (', ' + ($elm$core$String$fromInt(
@@ -9511,15 +10277,15 @@ var $author$project$View$Svg$viewShape = F3(
 				F2(
 					function (x, y) {
 						return toMsg(
-							A3($author$project$View$Svg$PointerDownOnBody, body.aa, x, y));
+							A3($author$project$View$Svg$PointerDownOnBody, body.W, x, y));
 					})),
 				$elm$svg$Svg$Events$onClick(
 				toMsg(
-					$author$project$View$Svg$ClickBody(body.aa)))
+					$author$project$View$Svg$ClickBody(body.W)))
 			]);
-		var _v0 = body.X;
+		var _v0 = body.Y;
 		if (!_v0.$) {
-			var r = _v0.a.aV;
+			var r = _v0.a.aX;
 			return A2(
 				$elm$svg$Svg$circle,
 				_Utils_ap(
@@ -9548,8 +10314,8 @@ var $author$project$View$Svg$viewShape = F3(
 							]))
 					]));
 		} else {
-			var w = _v0.a.a5;
-			var h = _v0.a.aE;
+			var w = _v0.a.a7;
+			var h = _v0.a.aG;
 			return A2(
 				$elm$svg$Svg$rect,
 				_Utils_ap(
@@ -9588,7 +10354,7 @@ var $author$project$View$Svg$viewBody = F3(
 	function (selected, toMsg, body) {
 		var isSelected = _Utils_eq(
 			selected,
-			$elm$core$Maybe$Just(body.aa));
+			$elm$core$Maybe$Just(body.W));
 		var energyGlow = (body.V > 1) ? A2($elm$core$Basics$min, 1.0, body.V / 20) : 0;
 		return A2(
 			$elm$svg$Svg$g,
@@ -9610,9 +10376,9 @@ var $author$project$View$Svg$viewBoundsRect = function (bounds) {
 				$elm$svg$Svg$Attributes$x('0'),
 				$elm$svg$Svg$Attributes$y('0'),
 				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromFloat(bounds.a6)),
+				$elm$core$String$fromFloat(bounds.a8)),
 				$elm$svg$Svg$Attributes$height(
-				$elm$core$String$fromFloat(bounds.aF)),
+				$elm$core$String$fromFloat(bounds.aH)),
 				$elm$svg$Svg$Attributes$fill('none'),
 				$elm$svg$Svg$Attributes$stroke('#2a2a3a'),
 				$elm$svg$Svg$Attributes$strokeWidth('2')
@@ -9626,12 +10392,12 @@ var $elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
 var $elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
 var $elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
 var $author$project$View$Svg$viewCursor = function (model) {
-	if (model.am.av.a4 && (!model.am.aL)) {
-		var mat = $author$project$Material$getMaterial(model.am.a9);
-		var cy = $elm$core$String$fromFloat(model.am.av.Q.b);
-		var cx = $elm$core$String$fromFloat(model.am.av.Q.a);
+	if (model.Z.ax.a6 && (!model.Z.aN)) {
+		var mat = $author$project$Material$getMaterial(model.Z.bb);
+		var cy = $elm$core$String$fromFloat(model.Z.ax.Q.b);
+		var cx = $elm$core$String$fromFloat(model.Z.ax.Q.a);
 		var previewShape = function () {
-			var _v0 = model.am.ay;
+			var _v0 = model.Z.aA;
 			if (!_v0) {
 				return _List_fromArray(
 					[
@@ -9658,9 +10424,9 @@ var $author$project$View$Svg$viewCursor = function (model) {
 						_List_fromArray(
 							[
 								$elm$svg$Svg$Attributes$x(
-								$elm$core$String$fromFloat(model.am.av.Q.a - 20)),
+								$elm$core$String$fromFloat(model.Z.ax.Q.a - 20)),
 								$elm$svg$Svg$Attributes$y(
-								$elm$core$String$fromFloat(model.am.av.Q.b - 15)),
+								$elm$core$String$fromFloat(model.Z.ax.Q.b - 15)),
 								$elm$svg$Svg$Attributes$width('40'),
 								$elm$svg$Svg$Attributes$height('30'),
 								$elm$svg$Svg$Attributes$fill('none'),
@@ -9684,10 +10450,10 @@ var $author$project$View$Svg$viewCursor = function (model) {
 						[
 							$elm$svg$Svg$Attributes$x1(cx),
 							$elm$svg$Svg$Attributes$y1(
-							$elm$core$String$fromFloat(model.am.av.Q.b - 8)),
+							$elm$core$String$fromFloat(model.Z.ax.Q.b - 8)),
 							$elm$svg$Svg$Attributes$x2(cx),
 							$elm$svg$Svg$Attributes$y2(
-							$elm$core$String$fromFloat(model.am.av.Q.b + 8)),
+							$elm$core$String$fromFloat(model.Z.ax.Q.b + 8)),
 							$elm$svg$Svg$Attributes$stroke(mat.r),
 							$elm$svg$Svg$Attributes$strokeWidth('1'),
 							$elm$svg$Svg$Attributes$opacity('0.5')
@@ -9698,10 +10464,10 @@ var $author$project$View$Svg$viewCursor = function (model) {
 					_List_fromArray(
 						[
 							$elm$svg$Svg$Attributes$x1(
-							$elm$core$String$fromFloat(model.am.av.Q.a - 8)),
+							$elm$core$String$fromFloat(model.Z.ax.Q.a - 8)),
 							$elm$svg$Svg$Attributes$y1(cy),
 							$elm$svg$Svg$Attributes$x2(
-							$elm$core$String$fromFloat(model.am.av.Q.a + 8)),
+							$elm$core$String$fromFloat(model.Z.ax.Q.a + 8)),
 							$elm$svg$Svg$Attributes$y2(cy),
 							$elm$svg$Svg$Attributes$stroke(mat.r),
 							$elm$svg$Svg$Attributes$strokeWidth('1'),
@@ -9720,22 +10486,144 @@ var $author$project$View$Svg$viewFloor = function (bounds) {
 			[
 				$elm$svg$Svg$Attributes$x('0'),
 				$elm$svg$Svg$Attributes$y(
-				$elm$core$String$fromFloat(bounds.aF - 4)),
+				$elm$core$String$fromFloat(bounds.aH - 4)),
 				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromFloat(bounds.a6)),
+				$elm$core$String$fromFloat(bounds.a8)),
 				$elm$svg$Svg$Attributes$height('4'),
 				$elm$svg$Svg$Attributes$fill('#3a3a4a')
 			]),
 		_List_Nil);
 };
+var $author$project$View$Svg$viewRopeLink = F2(
+	function (a, b) {
+		return A2(
+			$elm$svg$Svg$line,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x1(
+					$elm$core$String$fromFloat(a.Q.a)),
+					$elm$svg$Svg$Attributes$y1(
+					$elm$core$String$fromFloat(a.Q.b)),
+					$elm$svg$Svg$Attributes$x2(
+					$elm$core$String$fromFloat(b.Q.a)),
+					$elm$svg$Svg$Attributes$y2(
+					$elm$core$String$fromFloat(b.Q.b)),
+					$elm$svg$Svg$Attributes$stroke('#aa8855'),
+					$elm$svg$Svg$Attributes$strokeWidth('1.5'),
+					$elm$svg$Svg$Attributes$strokeDasharray('6 3'),
+					$elm$svg$Svg$Attributes$opacity('0.8')
+				]),
+			_List_Nil);
+	});
+var $elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $elm$svg$Svg$path = $elm$svg$Svg$trustedNode('path');
+var $author$project$View$Svg$viewSpringLink = F2(
+	function (a, b) {
+		var segments = 8;
+		var dy = b.Q.b - a.Q.b;
+		var dx = b.Q.a - a.Q.a;
+		var dist = $elm$core$Basics$sqrt((dx * dx) + (dy * dy));
+		var ux = (dist > 0.001) ? (dx / dist) : 1;
+		var py = ux;
+		var uy = (dist > 0.001) ? (dy / dist) : 0;
+		var px = -uy;
+		var amplitude = 6;
+		var zigzagPoints = A2(
+			$elm$core$List$map,
+			function (i) {
+				var t = i / segments;
+				var sign = (!A2($elm$core$Basics$modBy, 2, i)) ? 1 : (-1);
+				var offset = ((!i) || _Utils_eq(i, segments)) ? 0 : (sign * amplitude);
+				var baseY = a.Q.b + (dy * t);
+				var baseX = a.Q.a + (dx * t);
+				return $elm$core$String$fromFloat(baseX + (px * offset)) + (',' + $elm$core$String$fromFloat(baseY + (py * offset)));
+			},
+			A2($elm$core$List$range, 0, segments));
+		var pathData = 'M ' + A2($elm$core$String$join, ' L ', zigzagPoints);
+		return A2(
+			$elm$svg$Svg$path,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$d(pathData),
+					$elm$svg$Svg$Attributes$stroke('#55aa88'),
+					$elm$svg$Svg$Attributes$strokeWidth('1.5'),
+					$elm$svg$Svg$Attributes$fill('none'),
+					$elm$svg$Svg$Attributes$opacity('0.8')
+				]),
+			_List_Nil);
+	});
+var $author$project$View$Svg$viewStringLink = F2(
+	function (a, b) {
+		return A2(
+			$elm$svg$Svg$line,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x1(
+					$elm$core$String$fromFloat(a.Q.a)),
+					$elm$svg$Svg$Attributes$y1(
+					$elm$core$String$fromFloat(a.Q.b)),
+					$elm$svg$Svg$Attributes$x2(
+					$elm$core$String$fromFloat(b.Q.a)),
+					$elm$svg$Svg$Attributes$y2(
+					$elm$core$String$fromFloat(b.Q.b)),
+					$elm$svg$Svg$Attributes$stroke('#88aa55'),
+					$elm$svg$Svg$Attributes$strokeWidth('1.5'),
+					$elm$svg$Svg$Attributes$opacity('0.8')
+				]),
+			_List_Nil);
+	});
+var $author$project$View$Svg$viewWeldLink = F2(
+	function (a, b) {
+		return A2(
+			$elm$svg$Svg$line,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x1(
+					$elm$core$String$fromFloat(a.Q.a)),
+					$elm$svg$Svg$Attributes$y1(
+					$elm$core$String$fromFloat(a.Q.b)),
+					$elm$svg$Svg$Attributes$x2(
+					$elm$core$String$fromFloat(b.Q.a)),
+					$elm$svg$Svg$Attributes$y2(
+					$elm$core$String$fromFloat(b.Q.b)),
+					$elm$svg$Svg$Attributes$stroke('#aa5555'),
+					$elm$svg$Svg$Attributes$strokeWidth('3'),
+					$elm$svg$Svg$Attributes$opacity('0.7')
+				]),
+			_List_Nil);
+	});
+var $author$project$View$Svg$viewLink = F2(
+	function (bodies, link) {
+		var _v0 = _Utils_Tuple2(
+			A2($elm$core$Dict$get, link.bf, bodies),
+			A2($elm$core$Dict$get, link.bg, bodies));
+		if ((!_v0.a.$) && (!_v0.b.$)) {
+			var a = _v0.a.a;
+			var b = _v0.b.a;
+			var _v1 = link.br;
+			switch (_v1.$) {
+				case 0:
+					return A2($author$project$View$Svg$viewStringLink, a, b);
+				case 1:
+					return A2($author$project$View$Svg$viewSpringLink, a, b);
+				case 2:
+					return A2($author$project$View$Svg$viewRopeLink, a, b);
+				default:
+					return A2($author$project$View$Svg$viewWeldLink, a, b);
+			}
+		} else {
+			return A2($elm$svg$Svg$g, _List_Nil, _List_Nil);
+		}
+	});
 var $author$project$View$Svg$viewWorld = F2(
 	function (model, toMsg) {
-		var w = $elm$core$String$fromFloat(model.aq.a6);
-		var h = $elm$core$String$fromFloat(model.aq.aF);
-		var cam = model.ar;
-		var vh = model.aq.aF / cam.Y;
-		var vw = model.aq.a6 / cam.Y;
-		var viewBoxStr = $elm$core$String$fromFloat(cam.W.a) + (' ' + ($elm$core$String$fromFloat(cam.W.b) + (' ' + ($elm$core$String$fromFloat(vw) + (' ' + $elm$core$String$fromFloat(vh))))));
+		var w = $elm$core$String$fromFloat(model.as.a8);
+		var h = $elm$core$String$fromFloat(model.as.aH);
+		var cam = model.at;
+		var vh = model.as.aH / cam._;
+		var vw = model.as.a8 / cam._;
+		var viewBoxStr = $elm$core$String$fromFloat(cam.X.a) + (' ' + ($elm$core$String$fromFloat(cam.X.b) + (' ' + ($elm$core$String$fromFloat(vw) + (' ' + $elm$core$String$fromFloat(vh))))));
 		return A2(
 			$elm$svg$Svg$svg,
 			_List_fromArray(
@@ -9749,7 +10637,7 @@ var $author$project$View$Svg$viewWorld = F2(
 					$elm$html$Html$Attributes$attribute,
 					'aria-label',
 					'Simulation viewport, ' + ($elm$core$String$fromInt(
-						$elm$core$Dict$size(model.bc)) + (' bodies. ' + $author$project$View$Svg$modeLabel(model.am.aL)))),
+						$elm$core$Dict$size(model.aq)) + (' bodies. ' + $author$project$View$Svg$modeLabel(model.Z.aN)))),
 					$author$project$View$Svg$onPointerDown(
 					F4(
 						function (ox, oy, cx, cy) {
@@ -9760,15 +10648,20 @@ var $author$project$View$Svg$viewWorld = F2(
 			_Utils_ap(
 				_List_fromArray(
 					[
-						$author$project$View$Svg$viewFloor(model.aq),
-						$author$project$View$Svg$viewBoundsRect(model.aq)
+						$author$project$View$Svg$viewFloor(model.as),
+						$author$project$View$Svg$viewBoundsRect(model.as)
 					]),
 				_Utils_ap(
 					A2(
 						$elm$core$List$map,
-						A2($author$project$View$Svg$viewBody, model.am.bz, toMsg),
-						$elm$core$Dict$values(model.bc)),
-					$author$project$View$Svg$viewCursor(model))));
+						$author$project$View$Svg$viewLink(model.aq),
+						$elm$core$Dict$values(model.bu)),
+					_Utils_ap(
+						A2(
+							$elm$core$List$map,
+							A2($author$project$View$Svg$viewBody, model.Z.bJ, toMsg),
+							$elm$core$Dict$values(model.aq)),
+						$author$project$View$Svg$viewCursor(model)))));
 	});
 var $author$project$Main$view = function (model) {
 	return A2(
@@ -9789,7 +10682,7 @@ var $author$project$Main$view = function (model) {
 				A2(
 				$author$project$View$Controls$viewControls,
 				model,
-				{bf: $author$project$Update$Clear, bx: $author$project$Update$Redo, bA: $author$project$Update$SetBoundaryMode, bB: $author$project$Update$SetCollisionMode, bC: $author$project$Update$SetDrawTool, bH: $author$project$Update$ToggleMode, bI: $author$project$Update$TogglePanel, bJ: $author$project$Update$ToggleRun, bK: $author$project$Update$Undo, bO: $author$project$Update$ZoomIn, bP: $author$project$Update$ZoomOut, bQ: $author$project$Update$ZoomReset}),
+				{bi: $author$project$Update$Clear, bF: $author$project$Update$Redo, bK: $author$project$Update$SetBoundaryMode, bL: $author$project$Update$SetCollisionMode, bM: $author$project$Update$SetDrawTool, bS: $author$project$Update$ToggleMode, bT: $author$project$Update$TogglePanel, bU: $author$project$Update$ToggleRun, bV: $author$project$Update$Undo, bZ: $author$project$Update$ZoomIn, b_: $author$project$Update$ZoomOut, b$: $author$project$Update$ZoomReset}),
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -9808,17 +10701,17 @@ var $author$project$Main$view = function (model) {
 						$author$project$Main$viewPanelOverlay(model)
 					])),
 				$author$project$View$Inspector$viewInspector(model),
-				$author$project$View$A11y$viewEventLog(model.bo)
+				$author$project$View$A11y$viewEventLog(model.bv)
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
 	{
-		bn: function (_v0) {
+		bq: function (_v0) {
 			return _Utils_Tuple2($author$project$Model$initialModel, $elm$core$Platform$Cmd$none);
 		},
-		bE: $author$project$Update$subscriptions,
-		bL: $author$project$Update$update,
-		bM: $author$project$Main$view
+		bP: $author$project$Update$subscriptions,
+		bW: $author$project$Update$update,
+		bX: $author$project$Main$view
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	$elm$json$Json$Decode$succeed(0))(0)}});}(this));

@@ -94,7 +94,7 @@ Status: DONE. All M0 deliverables are shipped.
 
 
 ========================================================================
-2. MILESTONE 1 — MVP SANDBOX
+2. MILESTONE 1 — MVP SANDBOX                                [COMPLETE]
 ========================================================================
 
 Goal: Full sandbox interaction — pan/zoom, drag-move, editable
@@ -230,7 +230,7 @@ Exit criteria:
 
 
 ========================================================================
-3. MILESTONE 2 — CONSTRAINTS PACK
+3. MILESTONE 2 — CONSTRAINTS PACK                           [COMPLETE]
 ========================================================================
 
 Goal: Connect objects with physical constraints — strings, springs,

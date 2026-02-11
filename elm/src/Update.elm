@@ -34,6 +34,9 @@ type Msg
     | SetDrawTool DrawTool
     | SetBoundaryMode BoundaryMode
     | SetCollisionMode CollisionMode
+    | StartLinkCreation LinkKind
+    | CancelLinkCreation
+    | DeleteLink LinkId
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -46,7 +49,7 @@ update msg model =
                         model.sim
 
                     result =
-                        Physics.Step.step model.constraints model.bounds sim.stepCount model.bodies
+                        Physics.Step.step model.constraints model.bounds sim.stepCount model.links model.bodies
 
                     cmds =
                         List.map (collisionToAudioCmd model.bodies) result.events
@@ -107,6 +110,8 @@ update msg model =
                 { snapped
                     | bodies = Dict.empty
                     , nextId = 1
+                    , links = Dict.empty
+                    , nextLinkId = 1
                     , ui = setSelected Nothing snapped.ui
                 }
             , Cmd.none
@@ -180,6 +185,8 @@ update msg model =
                         { model
                             | bodies = snap.bodies
                             , nextId = snap.nextId
+                            , links = snap.links
+                            , nextLinkId = snap.nextLinkId
                             , history = newHistory
                         }
                     , Cmd.none
@@ -199,6 +206,8 @@ update msg model =
                         { model
                             | bodies = snap.bodies
                             , nextId = snap.nextId
+                            , links = snap.links
+                            , nextLinkId = snap.nextLinkId
                             , history = newHistory
                         }
                     , Cmd.none
@@ -290,6 +299,36 @@ update msg model =
         KeyDown key ctrl shift ->
             handleKey key ctrl shift model
 
+        StartLinkCreation kind ->
+            let
+                ui =
+                    model.ui
+            in
+            ( announce "Click the first body."
+                { model | ui = { ui | linkCreation = PickingFirst kind } }
+            , Cmd.none
+            )
+
+        CancelLinkCreation ->
+            let
+                ui =
+                    model.ui
+            in
+            ( announce "Constraint creation cancelled."
+                { model | ui = { ui | linkCreation = NotCreating } }
+            , Cmd.none
+            )
+
+        DeleteLink linkId ->
+            let
+                snapped =
+                    pushSnapshot model
+            in
+            ( announce "Constraint deleted."
+                { snapped | links = Dict.remove linkId snapped.links }
+            , Cmd.none
+            )
+
 
 
 -- SVG MSG HANDLING
@@ -297,6 +336,107 @@ update msg model =
 
 handleSvgMsg : View.Svg.Msg -> Model -> ( Model, Cmd Msg )
 handleSvgMsg svgMsg model =
+    case model.ui.linkCreation of
+        PickingFirst kind ->
+            handleLinkPick svgMsg kind model
+
+        PickingSecond kind bodyA ->
+            handleLinkPickSecond svgMsg kind bodyA model
+
+        NotCreating ->
+            handleSvgMsgNormal svgMsg model
+
+
+handleLinkPick : View.Svg.Msg -> LinkKind -> Model -> ( Model, Cmd Msg )
+handleLinkPick svgMsg kind model =
+    case svgMsg of
+        View.Svg.PointerDownOnBody id _ _ ->
+            let
+                ui =
+                    model.ui
+            in
+            ( announce ("Body " ++ String.fromInt id ++ " selected. Click second body.")
+                { model | ui = { ui | linkCreation = PickingSecond kind id, selected = Just id } }
+            , Cmd.none
+            )
+
+        View.Svg.ClickBody _ ->
+            ( model, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+handleLinkPickSecond : View.Svg.Msg -> LinkKind -> BodyId -> Model -> ( Model, Cmd Msg )
+handleLinkPickSecond svgMsg kind bodyA model =
+    case svgMsg of
+        View.Svg.PointerDownOnBody bodyB _ _ ->
+            if bodyA == bodyB then
+                ( model, Cmd.none )
+
+            else
+                createLink kind bodyA bodyB model
+
+        View.Svg.ClickBody _ ->
+            ( model, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+createLink : LinkKind -> BodyId -> BodyId -> Model -> ( Model, Cmd Msg )
+createLink kind bodyA bodyB model =
+    case ( Dict.get bodyA model.bodies, Dict.get bodyB model.bodies ) of
+        ( Just a, Just b ) ->
+            let
+                delta =
+                    vecSub b.pos a.pos
+
+                dist =
+                    vecLen delta
+
+                resolvedKind =
+                    case kind of
+                        StringLink _ ->
+                            StringLink { length = dist }
+
+                        SpringLink _ ->
+                            SpringLink { restLength = dist, stiffness = 100 }
+
+                        RopeLink _ ->
+                            RopeLink { maxLength = dist * 1.5 }
+
+                        WeldLink _ ->
+                            WeldLink { relativeOffset = delta }
+
+                newLink =
+                    { id = model.nextLinkId
+                    , kind = resolvedKind
+                    , bodyA = bodyA
+                    , bodyB = bodyB
+                    }
+
+                ui =
+                    model.ui
+
+                snapped =
+                    pushSnapshot model
+            in
+            ( announce "Constraint created."
+                { snapped
+                    | links = Dict.insert model.nextLinkId newLink snapped.links
+                    , nextLinkId = model.nextLinkId + 1
+                    , ui = { ui | linkCreation = NotCreating }
+                }
+            , Cmd.none
+            )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+handleSvgMsgNormal : View.Svg.Msg -> Model -> ( Model, Cmd Msg )
+handleSvgMsgNormal svgMsg model =
     case svgMsg of
         View.Svg.ClickBody id ->
             let
@@ -429,6 +569,8 @@ makeSnapshot : Model -> Snapshot
 makeSnapshot model =
     { bodies = model.bodies
     , nextId = model.nextId
+    , links = model.links
+    , nextLinkId = model.nextLinkId
     }
 
 
@@ -555,6 +697,9 @@ handleNonModifierKey key model =
 
         "m" ->
             update (TogglePanel MaterialPanel) model
+
+        "c" ->
+            update (TogglePanel ConstraintPanel) model
 
         "+" ->
             update ZoomIn model
@@ -773,11 +918,17 @@ handleSelectKey key model =
 
                         newBodies =
                             Dict.remove id snapped.bodies
+
+                        newLinks =
+                            Dict.filter
+                                (\_ link -> link.bodyA /= id && link.bodyB /= id)
+                                snapped.links
                     in
                     announce
                         (name ++ " deleted. " ++ String.fromInt (Dict.size newBodies) ++ " bodies remaining.")
                         { snapped
                             | bodies = newBodies
+                            , links = newLinks
                             , ui = { ui | selected = Nothing }
                         }
 

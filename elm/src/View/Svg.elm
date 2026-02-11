@@ -62,6 +62,7 @@ viewWorld model toMsg =
         ([ viewFloor model.bounds
          , viewBoundsRect model.bounds
          ]
+            ++ List.map (viewLink model.bodies) (Dict.values model.links)
             ++ List.map (viewBody model.ui.selected toMsg) (Dict.values model.bodies)
             ++ viewCursor model
         )
@@ -389,4 +390,156 @@ viewCursor model =
                ]
 
     else
+        []
+
+
+
+-- LINK RENDERING
+
+
+viewLink : Dict.Dict BodyId Body -> Link -> Svg msg
+viewLink bodies link =
+    case ( Dict.get link.bodyA bodies, Dict.get link.bodyB bodies ) of
+        ( Just a, Just b ) ->
+            case link.kind of
+                StringLink _ ->
+                    viewStringLink a b
+
+                SpringLink _ ->
+                    viewSpringLink a b
+
+                RopeLink _ ->
+                    viewRopeLink a b
+
+                WeldLink _ ->
+                    viewWeldLink a b
+
+        _ ->
+            g [] []
+
+
+viewStringLink : Body -> Body -> Svg msg
+viewStringLink a b =
+    line
+        [ SA.x1 (String.fromFloat a.pos.x)
+        , SA.y1 (String.fromFloat a.pos.y)
+        , SA.x2 (String.fromFloat b.pos.x)
+        , SA.y2 (String.fromFloat b.pos.y)
+        , SA.stroke "#88aa55"
+        , SA.strokeWidth "1.5"
+        , SA.opacity "0.8"
+        ]
+        []
+
+
+viewSpringLink : Body -> Body -> Svg msg
+viewSpringLink a b =
+    let
+        dx =
+            b.pos.x - a.pos.x
+
+        dy =
+            b.pos.y - a.pos.y
+
+        dist =
+            sqrt (dx * dx + dy * dy)
+
+        segments =
+            8
+
+        amplitude =
+            6
+
+        ux =
+            if dist > 0.001 then
+                dx / dist
+
+            else
+                1
+
+        uy =
+            if dist > 0.001 then
+                dy / dist
+
+            else
+                0
+
+        px =
+            -uy
+
+        py =
+            ux
+
+        zigzagPoints =
+            List.map
+                (\i ->
+                    let
+                        t =
+                            toFloat i / toFloat segments
+
+                        baseX =
+                            a.pos.x + dx * t
+
+                        baseY =
+                            a.pos.y + dy * t
+
+                        sign =
+                            if modBy 2 i == 0 then
+                                1
+
+                            else
+                                -1
+
+                        offset =
+                            if i == 0 || i == segments then
+                                0
+
+                            else
+                                toFloat sign * amplitude
+                    in
+                    String.fromFloat (baseX + px * offset)
+                        ++ ","
+                        ++ String.fromFloat (baseY + py * offset)
+                )
+                (List.range 0 segments)
+
+        pathData =
+            "M " ++ String.join " L " zigzagPoints
+    in
+    Svg.path
+        [ SA.d pathData
+        , SA.stroke "#55aa88"
+        , SA.strokeWidth "1.5"
+        , SA.fill "none"
+        , SA.opacity "0.8"
+        ]
+        []
+
+
+viewRopeLink : Body -> Body -> Svg msg
+viewRopeLink a b =
+    line
+        [ SA.x1 (String.fromFloat a.pos.x)
+        , SA.y1 (String.fromFloat a.pos.y)
+        , SA.x2 (String.fromFloat b.pos.x)
+        , SA.y2 (String.fromFloat b.pos.y)
+        , SA.stroke "#aa8855"
+        , SA.strokeWidth "1.5"
+        , SA.strokeDasharray "6 3"
+        , SA.opacity "0.8"
+        ]
+        []
+
+
+viewWeldLink : Body -> Body -> Svg msg
+viewWeldLink a b =
+    line
+        [ SA.x1 (String.fromFloat a.pos.x)
+        , SA.y1 (String.fromFloat a.pos.y)
+        , SA.x2 (String.fromFloat b.pos.x)
+        , SA.y2 (String.fromFloat b.pos.y)
+        , SA.stroke "#aa5555"
+        , SA.strokeWidth "3"
+        , SA.opacity "0.7"
+        ]
         []

@@ -11,6 +11,8 @@ import Material
 type alias Snapshot =
     { bodies : Dict BodyId Body
     , nextId : BodyId
+    , links : Dict LinkId Link
+    , nextLinkId : LinkId
     }
 
 
@@ -121,7 +123,36 @@ type alias Camera =
 
 
 
--- CONSTRAINTS
+-- LINKS (physical constraints between bodies)
+
+
+type alias LinkId =
+    Int
+
+
+type LinkKind
+    = StringLink { length : Float }
+    | SpringLink { restLength : Float, stiffness : Float }
+    | RopeLink { maxLength : Float }
+    | WeldLink { relativeOffset : Vec2 }
+
+
+type alias Link =
+    { id : LinkId
+    , kind : LinkKind
+    , bodyA : BodyId
+    , bodyB : BodyId
+    }
+
+
+type LinkCreation
+    = NotCreating
+    | PickingFirst LinkKind
+    | PickingSecond LinkKind BodyId
+
+
+
+-- SIM CONSTRAINTS
 
 
 type BoundaryMode
@@ -182,6 +213,7 @@ type Panel
     = NoPanel
     | MaterialPanel
     | PropertiesPanel
+    | ConstraintPanel
 
 
 type PointerAction
@@ -199,6 +231,7 @@ type alias UiState =
     , panel : Panel
     , pointer : PointerAction
     , activeMaterial : String
+    , linkCreation : LinkCreation
     }
 
 
@@ -245,6 +278,8 @@ type alias Bounds =
 type alias Model =
     { bodies : Dict BodyId Body
     , nextId : BodyId
+    , links : Dict LinkId Link
+    , nextLinkId : LinkId
     , bounds : Bounds
     , constraints : Constraints
     , sim : SimState
@@ -332,6 +367,8 @@ initialModel : Model
 initialModel =
     { bodies = Dict.empty
     , nextId = 1
+    , links = Dict.empty
+    , nextLinkId = 1
     , bounds = { width = 800, height = 600 }
     , constraints =
         { tickRateHz = 30
@@ -357,6 +394,7 @@ initialModel =
         , panel = NoPanel
         , pointer = Idle
         , activeMaterial = "Rubber"
+        , linkCreation = NotCreating
         }
     , log =
         { announcements =

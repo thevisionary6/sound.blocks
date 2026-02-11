@@ -58,6 +58,9 @@ viewControls model msgs =
         , toolButton "Props (P)"
             (model.ui.panel == PropertiesPanel)
             (msgs.togglePanel PropertiesPanel)
+        , toolButton "Links (C)"
+            (model.ui.panel == ConstraintPanel)
+            (msgs.togglePanel ConstraintPanel)
         , sep
         , viewBoundaryPicker model.constraints.boundaryMode msgs.setBoundaryMode
         , viewCollisionPicker model.constraints.collisionMode msgs.setCollisionMode

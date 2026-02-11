@@ -11,6 +11,7 @@ import Update exposing (Msg(..), subscriptions, update)
 import View.A11y exposing (viewAnnouncement, viewEventLog)
 import View.Controls exposing (viewControls)
 import View.Inspector exposing (viewInspector)
+import View.ConstraintPanel exposing (viewConstraintPanel)
 import View.MaterialPanel exposing (viewMaterialPanel)
 import View.PropertiesPanel exposing (viewPropertiesPanel)
 import View.Svg exposing (viewWorld)
@@ -120,3 +121,13 @@ viewPanelOverlay model =
                         , style "color" "#7a7a8e"
                         ]
                         [ text "Select a body first." ]
+
+        ConstraintPanel ->
+            viewConstraintPanel
+                model.ui.linkCreation
+                model.links
+                model.bodies
+                StartLinkCreation
+                DeleteLink
+                CancelLinkCreation
+                (TogglePanel ConstraintPanel)
