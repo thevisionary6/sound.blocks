@@ -1,0 +1,42 @@
+/* Particle Forge — Optional external styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a0f;
+  overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  color: #e0e0ec;
+}
+
+/* Focus indicators for accessibility */
+*:focus-visible {
+  outline: 2px solid rgba(255, 107, 61, 0.7);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid rgba(255, 107, 61, 0.7);
+  outline-offset: 2px;
+}
+
+/* SVG elements get a glow effect on focus */
+svg circle:focus-visible,
+svg rect:focus-visible {
+  outline: none;
+  filter: drop-shadow(0 0 6px rgba(255, 107, 61, 0.6));
+}
+
+button:hover {
+  filter: brightness(1.2);
+}
+
+/* Selection ring animation */
+@keyframes selectionPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
