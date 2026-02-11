@@ -84,6 +84,7 @@ type alias BodyId =
 type Shape
     = Circle { r : Float }
     | Rect { w : Float, h : Float }
+    | Pipe { length : Float, diameter : Float, openEnds : ( Bool, Bool ), holes : List Float }
 
 
 
@@ -197,11 +198,14 @@ type UiMode
     | SelectMode
     | RunMode
     | InspectMode
+    | BreathMode
+    | DrillMode
 
 
 type DrawTool
     = CircleTool
     | RectTool
+    | PipeTool
 
 
 type alias Cursor =
@@ -234,6 +238,7 @@ type alias UiState =
     , pointer : PointerAction
     , activeMaterial : String
     , linkCreation : LinkCreation
+    , breathTarget : Maybe BodyId
     }
 
 
@@ -347,6 +352,31 @@ makeRect id pos w h matName =
     }
 
 
+makePipe : BodyId -> Vec2 -> Float -> Float -> String -> Body
+makePipe id pos len diam matName =
+    let
+        mat =
+            Material.getMaterial matName
+    in
+    { id = id
+    , shape = Pipe { length = len, diameter = diam, openEnds = ( True, True ), holes = [] }
+    , pos = pos
+    , vel = vecZero
+    , rot = 0
+    , angVel = 0
+    , mass = mat.density * len * diam * 0.0001
+    , restitution = mat.restitution
+    , friction = mat.friction
+    , energy = 0
+    , tags = [ "pipe" ]
+    , a11y =
+        { name = "Pipe " ++ String.fromInt id
+        , description = mat.name ++ " pipe " ++ String.fromInt (round len) ++ "x" ++ String.fromInt (round diam)
+        }
+    , materialName = matName
+    }
+
+
 bodyRadius : Body -> Float
 bodyRadius body =
     case body.shape of
@@ -355,6 +385,9 @@ bodyRadius body =
 
         Rect { w, h } ->
             sqrt (w * w + h * h) / 2
+
+        Pipe { length, diameter } ->
+            sqrt (length * length + diameter * diameter) / 2
 
 
 bodyLabel : Body -> String
@@ -398,6 +431,7 @@ initialModel =
         , pointer = Idle
         , activeMaterial = "Rubber"
         , linkCreation = NotCreating
+        , breathTarget = Nothing
         }
     , log =
         { announcements =

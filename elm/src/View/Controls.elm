@@ -20,6 +20,7 @@ type alias ControlMsgs msg =
     , zoomIn : msg
     , zoomOut : msg
     , zoomReset : msg
+    , setMode : UiMode -> msg
     }
 
 
@@ -64,6 +65,13 @@ viewControls model msgs =
         , toolButton "Mixer (X)"
             (model.ui.panel == MixerPanel)
             (msgs.togglePanel MixerPanel)
+        , sep
+        , toolButton "Breath (B)"
+            (model.ui.mode == BreathMode)
+            (msgs.setMode BreathMode)
+        , toolButton "Drill (G)"
+            (model.ui.mode == DrillMode)
+            (msgs.setMode DrillMode)
         , sep
         , viewBoundaryPicker model.constraints.boundaryMode msgs.setBoundaryMode
         , viewCollisionPicker model.constraints.collisionMode msgs.setCollisionMode
@@ -115,12 +123,19 @@ modeButtonLabel mode =
         InspectMode ->
             "Inspect"
 
+        BreathMode ->
+            "Breath"
+
+        DrillMode ->
+            "Drill"
+
 
 viewDrawToolPicker : DrawTool -> (DrawTool -> msg) -> Html msg
 viewDrawToolPicker current setTool =
     span [ style "display" "flex", style "gap" "3px" ]
         [ toolButton "Circle" (current == CircleTool) (setTool CircleTool)
         , toolButton "Rect" (current == RectTool) (setTool RectTool)
+        , toolButton "Pipe" (current == PipeTool) (setTool PipeTool)
         ]
 
 

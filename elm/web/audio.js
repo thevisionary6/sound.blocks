@@ -20,6 +20,11 @@
   var delayDry = null;      // delay dry mix
   var analyser = null;      // AnalyserNode for meter
 
+  // Breath state: sustained oscillator for pipe excitation
+  var breathOsc = null;
+  var breathEnv = null;
+  var breathPanner = null;
+
   // Current mixer state
   var mixerState = {
     volume: 0.7,
@@ -361,10 +366,87 @@
     applyMixerState();
   }
 
+  // Start a sustained breath tone on a pipe
+  function startBreath(event) {
+    if (!initAudio()) return;
+    if (ctx.state === "suspended") return;
+
+    stopBreath();
+
+    var freq = event.frequency || 440;
+    var x = event.x || 0;
+    var worldWidth = 800;
+    var pan = ((x / worldWidth) * 2) - 1;
+    pan = Math.max(-1, Math.min(1, pan));
+
+    var matProfile = getProfile(event.materialName);
+    var now = ctx.currentTime;
+
+    breathOsc = ctx.createOscillator();
+    breathOsc.type = matProfile.oscType || "sine";
+    breathOsc.frequency.setValueAtTime(freq, now);
+
+    // Add slight vibrato for organic feel
+    var vibrato = ctx.createOscillator();
+    var vibratoGain = ctx.createGain();
+    vibrato.frequency.setValueAtTime(5, now);
+    vibratoGain.gain.setValueAtTime(freq * 0.008, now);
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(breathOsc.frequency);
+    vibrato.start(now);
+    breathOsc._vibrato = vibrato;
+    breathOsc._vibratoGain = vibratoGain;
+
+    breathEnv = ctx.createGain();
+    breathEnv.gain.setValueAtTime(0, now);
+    breathEnv.gain.linearRampToValueAtTime(0.25, now + 0.15);
+
+    breathPanner = ctx.createStereoPanner();
+    breathPanner.pan.setValueAtTime(pan, now);
+
+    breathOsc.connect(breathEnv);
+    breathEnv.connect(breathPanner);
+    breathPanner.connect(dryGain);
+
+    breathOsc.start(now);
+  }
+
+  // Stop the sustained breath tone
+  function stopBreath() {
+    if (breathOsc) {
+      try {
+        var now = ctx.currentTime;
+        breathEnv.gain.cancelScheduledValues(now);
+        breathEnv.gain.setValueAtTime(breathEnv.gain.value, now);
+        breathEnv.gain.linearRampToValueAtTime(0, now + 0.1);
+        breathOsc.stop(now + 0.15);
+        if (breathOsc._vibrato) {
+          breathOsc._vibrato.stop(now + 0.15);
+        }
+      } catch (e) {
+        // already stopped
+      }
+      breathOsc = null;
+      breathEnv = null;
+      breathPanner = null;
+    }
+  }
+
+  // Handle breath events from Elm ports
+  function handleBreathEvent(event) {
+    if (!event) return;
+    if (event.action === "start") {
+      startBreath(event);
+    } else if (event.action === "stop") {
+      stopBreath();
+    }
+  }
+
   // Expose for Elm port subscription
   window.ParticleForgeAudio = {
     handleAudioEvent: handleAudioEvent,
     handleMixerCommand: handleMixerCommand,
+    handleBreathEvent: handleBreathEvent,
     initAudio: initAudio
   };
 })();

@@ -246,18 +246,20 @@ resolveBodyPair trackEnergy stepCount a b result =
 
 shapeMinDist : Body -> Body -> Float
 shapeMinDist a b =
-    case ( a.shape, b.shape ) of
-        ( Circle ca, Circle cb ) ->
-            ca.r + cb.r
+    shapeEffectiveRadius a + shapeEffectiveRadius b
 
-        ( Circle c, Rect r ) ->
-            c.r + min r.w r.h / 2
 
-        ( Rect r, Circle c ) ->
-            min r.w r.h / 2 + c.r
+shapeEffectiveRadius : Body -> Float
+shapeEffectiveRadius body =
+    case body.shape of
+        Circle { r } ->
+            r
 
-        ( Rect ra, Rect rb ) ->
-            (min ra.w ra.h + min rb.w rb.h) / 2
+        Rect { w, h } ->
+            min w h / 2
+
+        Pipe { length, diameter } ->
+            min length diameter / 2
 
 
 bodyInertia : Body -> Float
@@ -268,3 +270,6 @@ bodyInertia body =
 
         Rect { w, h } ->
             body.mass * (w * w + h * h) / 12
+
+        Pipe { length, diameter } ->
+            body.mass * (length * length + diameter * diameter) / 12

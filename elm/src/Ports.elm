@@ -1,4 +1,4 @@
-port module Ports exposing (sendAudioEvent, sendMixerCommand)
+port module Ports exposing (sendAudioEvent, sendBreathEvent, sendMixerCommand)
 
 import Json.Encode as Encode
 
@@ -7,6 +7,9 @@ port audioEvent : Encode.Value -> Cmd msg
 
 
 port mixerCommand : Encode.Value -> Cmd msg
+
+
+port breathEvent : Encode.Value -> Cmd msg
 
 
 sendAudioEvent :
@@ -63,5 +66,25 @@ sendMixerCommand cmd =
             , ( "delayTime", Encode.float cmd.delayTime )
             , ( "delayFeedback", Encode.float cmd.delayFeedback )
             , ( "delayMix", Encode.float cmd.delayMix )
+            ]
+        )
+
+
+sendBreathEvent :
+    { action : String
+    , frequency : Float
+    , bodyId : Int
+    , x : Float
+    , materialName : String
+    }
+    -> Cmd msg
+sendBreathEvent event =
+    breathEvent
+        (Encode.object
+            [ ( "action", Encode.string event.action )
+            , ( "frequency", Encode.float event.frequency )
+            , ( "bodyId", Encode.int event.bodyId )
+            , ( "x", Encode.float event.x )
+            , ( "materialName", Encode.string event.materialName )
             ]
         )

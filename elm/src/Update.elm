@@ -7,6 +7,7 @@ import Json.Decode as Decode
 import Material
 import Mixer exposing (MixerMsg(..), updateMixer)
 import Model exposing (..)
+import Physics.Resonance
 import Physics.Step
 import Ports
 import Time
@@ -39,6 +40,10 @@ type Msg
     | CancelLinkCreation
     | DeleteLink LinkId
     | MixerUpdate MixerMsg
+    | BreathStart BodyId
+    | BreathStop
+    | DrillHole BodyId Float
+    | SetMode UiMode
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -96,6 +101,12 @@ update msg model =
                             InspectMode
 
                         InspectMode ->
+                            BreathMode
+
+                        BreathMode ->
+                            DrillMode
+
+                        DrillMode ->
                             DrawMode
             in
             ( announce (modeAnnouncement newMode)
@@ -129,8 +140,24 @@ update msg model =
             let
                 ui =
                     model.ui
+
+                breathCmd =
+                    case ui.breathTarget of
+                        Just _ ->
+                            Ports.sendBreathEvent
+                                { action = "stop"
+                                , frequency = 0
+                                , bodyId = -1
+                                , x = 0
+                                , materialName = ""
+                                }
+
+                        Nothing ->
+                            Cmd.none
             in
-            ( { model | ui = { ui | pointer = Idle } }, Cmd.none )
+            ( { model | ui = { ui | pointer = Idle, breathTarget = Nothing } }
+            , breathCmd
+            )
 
         WheelZoom deltaY ->
             let
@@ -253,6 +280,9 @@ update msg model =
 
                         RectTool ->
                             "Rectangle tool selected."
+
+                        PipeTool ->
+                            "Pipe tool selected."
             in
             ( announce toolName { model | ui = { ui | drawTool = tool } }
             , Cmd.none
@@ -338,6 +368,103 @@ update msg model =
             in
             ( { model | mixer = newMixer }
             , sendMixerState newMixer
+            )
+
+        BreathStart bodyId ->
+            case Dict.get bodyId model.bodies of
+                Just body ->
+                    case body.shape of
+                        Pipe { length, openEnds, holes } ->
+                            let
+                                freq =
+                                    Physics.Resonance.pipeResonantFreq length openEnds holes
+
+                                ui =
+                                    model.ui
+                            in
+                            ( announce ("Breathing pipe at " ++ String.fromInt (round freq) ++ " Hz")
+                                { model | ui = { ui | breathTarget = Just bodyId } }
+                            , Ports.sendBreathEvent
+                                { action = "start"
+                                , frequency = freq
+                                , bodyId = bodyId
+                                , x = body.pos.x
+                                , materialName = body.materialName
+                                }
+                            )
+
+                        _ ->
+                            ( announce "Not a pipe." model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        BreathStop ->
+            let
+                ui =
+                    model.ui
+            in
+            ( { model | ui = { ui | breathTarget = Nothing } }
+            , Ports.sendBreathEvent
+                { action = "stop"
+                , frequency = 0
+                , bodyId = -1
+                , x = 0
+                , materialName = ""
+                }
+            )
+
+        DrillHole bodyId holePos ->
+            let
+                snapped =
+                    pushSnapshot model
+
+                newBodies =
+                    Dict.update bodyId
+                        (Maybe.map
+                            (\body ->
+                                case body.shape of
+                                    Pipe pipe ->
+                                        let
+                                            newHoles =
+                                                pipe.holes ++ [ holePos ]
+
+                                            newFreq =
+                                                Physics.Resonance.pipeResonantFreq pipe.length pipe.openEnds newHoles
+                                        in
+                                        { body
+                                            | shape = Pipe { pipe | holes = newHoles }
+                                            , a11y =
+                                                { name = body.a11y.name
+                                                , description =
+                                                    body.a11y.description
+                                                        ++ ", "
+                                                        ++ String.fromInt (List.length newHoles)
+                                                        ++ " holes, "
+                                                        ++ String.fromInt (round newFreq)
+                                                        ++ " Hz"
+                                                }
+                                        }
+
+                                    _ ->
+                                        body
+                            )
+                        )
+                        snapped.bodies
+            in
+            ( announce "Hole drilled."
+                { snapped | bodies = newBodies }
+            , Cmd.none
+            )
+
+        SetMode newMode ->
+            let
+                ui =
+                    model.ui
+            in
+            ( announce (modeAnnouncement newMode)
+                { model | ui = { ui | mode = newMode } }
+            , Cmd.none
             )
 
 
@@ -450,40 +577,53 @@ handleSvgMsgNormal : View.Svg.Msg -> Model -> ( Model, Cmd Msg )
 handleSvgMsgNormal svgMsg model =
     case svgMsg of
         View.Svg.ClickBody id ->
-            let
-                ui =
-                    model.ui
+            case model.ui.mode of
+                DrillMode ->
+                    handleDrillClick id model
 
-                bodyName =
-                    case Dict.get id model.bodies of
-                        Just body ->
-                            bodyLabel body ++ " selected."
+                _ ->
+                    let
+                        ui =
+                            model.ui
 
-                        Nothing ->
-                            "Body selected."
-            in
-            ( announce bodyName
-                { model | ui = { ui | selected = Just id, mode = SelectMode } }
-            , Cmd.none
-            )
+                        bodyName =
+                            case Dict.get id model.bodies of
+                                Just body ->
+                                    bodyLabel body ++ " selected."
+
+                                Nothing ->
+                                    "Body selected."
+                    in
+                    ( announce bodyName
+                        { model | ui = { ui | selected = Just id, mode = SelectMode } }
+                    , Cmd.none
+                    )
 
         View.Svg.PointerDownOnBody id cx cy ->
-            let
-                ui =
-                    model.ui
+            case model.ui.mode of
+                BreathMode ->
+                    update (BreathStart id) model
 
-                snapped =
-                    pushSnapshot model
-            in
-            ( { snapped
-                | ui =
-                    { ui
-                        | pointer = DraggingBody id { x = cx, y = cy }
-                        , selected = Just id
-                    }
-              }
-            , Cmd.none
-            )
+                DrillMode ->
+                    ( model, Cmd.none )
+
+                _ ->
+                    let
+                        ui =
+                            model.ui
+
+                        snapped =
+                            pushSnapshot model
+                    in
+                    ( { snapped
+                        | ui =
+                            { ui
+                                | pointer = DraggingBody id { x = cx, y = cy }
+                                , selected = Just id
+                            }
+                      }
+                    , Cmd.none
+                    )
 
         View.Svg.PointerDownOnBg ox oy cx cy ->
             case model.ui.mode of
@@ -504,6 +644,29 @@ handleSvgMsgNormal svgMsg model =
                     )
 
         View.Svg.NoOp ->
+            ( model, Cmd.none )
+
+
+
+handleDrillClick : BodyId -> Model -> ( Model, Cmd Msg )
+handleDrillClick id model =
+    case Dict.get id model.bodies of
+        Just body ->
+            case body.shape of
+                Pipe pipe ->
+                    let
+                        existingCount =
+                            List.length pipe.holes
+
+                        newHolePos =
+                            toFloat (existingCount + 1) / toFloat (existingCount + 2)
+                    in
+                    update (DrillHole id newHolePos) model
+
+                _ ->
+                    ( announce "Not a pipe. Drill only works on pipes." model, Cmd.none )
+
+        Nothing ->
             ( model, Cmd.none )
 
 
@@ -630,6 +793,9 @@ applyChange change body =
                 Rect { w, h } ->
                     { body | shape = Rect { w = max 10 (w + d), h = h } }
 
+                Pipe pipe ->
+                    { body | shape = Pipe { pipe | length = max 20 (pipe.length + d) } }
+
                 _ ->
                     body
 
@@ -637,6 +803,9 @@ applyChange change body =
             case body.shape of
                 Rect { w, h } ->
                     { body | shape = Rect { w = w, h = max 10 (h + d) } }
+
+                Pipe pipe ->
+                    { body | shape = Pipe { pipe | diameter = max 8 (pipe.diameter + d) } }
 
                 _ ->
                     body
@@ -706,6 +875,15 @@ handleNonModifierKey key model =
         "2" ->
             update (SetDrawTool RectTool) model
 
+        "3" ->
+            update (SetDrawTool PipeTool) model
+
+        "b" ->
+            update (SetMode BreathMode) model
+
+        "g" ->
+            update (SetMode DrillMode) model
+
         "m" ->
             update (TogglePanel MaterialPanel) model
 
@@ -740,6 +918,20 @@ handleNonModifierKey key model =
 
                 InspectMode ->
                     ( handleInspectKey key model, Cmd.none )
+
+                BreathMode ->
+                    if key == "Escape" then
+                        update (SetMode DrawMode) model
+
+                    else
+                        ( model, Cmd.none )
+
+                DrillMode ->
+                    if key == "Escape" then
+                        update (SetMode DrawMode) model
+
+                    else
+                        ( model, Cmd.none )
 
 
 handleDrawKey : String -> Model -> Model
@@ -835,6 +1027,9 @@ placeShapeAt pos model =
 
                 RectTool ->
                     makeRect model.nextId pos 40 30 matName
+
+                PipeTool ->
+                    makePipe model.nextId pos 80 16 matName
 
         newBodies =
             Dict.insert model.nextId newBody model.bodies
@@ -1031,6 +1226,12 @@ modeAnnouncement mode =
 
         InspectMode ->
             "Inspect mode. Tab through bodies to view details."
+
+        BreathMode ->
+            "Breath mode. Click and hold a pipe to excite it."
+
+        DrillMode ->
+            "Drill mode. Click a pipe to add a hole."
 
 
 

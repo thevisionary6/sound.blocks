@@ -53,6 +53,7 @@ view model =
             , zoomIn = ZoomIn
             , zoomOut = ZoomOut
             , zoomReset = ZoomReset
+            , setMode = SetMode
             }
         , div
             [ style "flex" "1"

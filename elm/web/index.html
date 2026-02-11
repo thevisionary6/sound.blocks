@@ -58,6 +58,15 @@
       });
     }
 
+    // Subscribe to breath events from Elm ports
+    if (app.ports && app.ports.breathEvent) {
+      app.ports.breathEvent.subscribe(function(event) {
+        if (window.ParticleForgeAudio) {
+          window.ParticleForgeAudio.handleBreathEvent(event);
+        }
+      });
+    }
+
     // Prevent default on keys that Elm handles
     document.addEventListener('keydown', function(e) {
       var handled = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', ' '];

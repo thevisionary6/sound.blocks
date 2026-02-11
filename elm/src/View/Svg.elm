@@ -103,6 +103,12 @@ modeLabel mode =
         InspectMode ->
             "Inspect mode"
 
+        BreathMode ->
+            "Breath mode"
+
+        DrillMode ->
+            "Drill mode"
+
 
 viewFloor : Bounds -> Svg msg
 viewFloor bounds =
@@ -184,6 +190,22 @@ selectionRing isSelected body =
                     []
                 ]
 
+            Pipe { length, diameter } ->
+                [ rect
+                    [ SA.x (String.fromFloat (body.pos.x - length / 2 - 4))
+                    , SA.y (String.fromFloat (body.pos.y - diameter / 2 - 4))
+                    , SA.width (String.fromFloat (length + 8))
+                    , SA.height (String.fromFloat (diameter + 8))
+                    , SA.fill "none"
+                    , SA.stroke "#ff6b3d"
+                    , SA.strokeWidth "2"
+                    , SA.strokeDasharray "4 3"
+                    , SA.opacity "0.7"
+                    , SA.transform (rotateTransform body)
+                    ]
+                    []
+                ]
+
     else
         []
 
@@ -220,6 +242,25 @@ energyRing glow body =
                     , SA.strokeWidth "1.5"
                     , SA.opacity (String.fromFloat (glow * 0.6))
                     , SA.rx "3"
+                    , SA.transform (rotateTransform body)
+                    ]
+                    []
+                ]
+
+            Pipe { length, diameter } ->
+                let
+                    offset =
+                        2 + glow * 8
+                in
+                [ rect
+                    [ SA.x (String.fromFloat (body.pos.x - length / 2 - offset))
+                    , SA.y (String.fromFloat (body.pos.y - diameter / 2 - offset))
+                    , SA.width (String.fromFloat (length + offset * 2))
+                    , SA.height (String.fromFloat (diameter + offset * 2))
+                    , SA.fill "none"
+                    , SA.stroke "#ffaa33"
+                    , SA.strokeWidth "1.5"
+                    , SA.opacity (String.fromFloat (glow * 0.6))
                     , SA.transform (rotateTransform body)
                     ]
                     []
@@ -305,6 +346,104 @@ viewShape isSelected toMsg body =
                 )
                 [ Svg.title [] [ text label ] ]
 
+        Pipe { length, diameter, openEnds, holes } ->
+            let
+                pipeAlpha =
+                    if isSelected then
+                        mat.alpha
+
+                    else
+                        mat.alpha * 0.85
+
+                px =
+                    body.pos.x - length / 2
+
+                py =
+                    body.pos.y - diameter / 2
+
+                ( leftOpen, rightOpen ) =
+                    openEnds
+
+                openEndMarkers =
+                    (if leftOpen then
+                        [ line
+                            [ SA.x1 (String.fromFloat px)
+                            , SA.y1 (String.fromFloat (py - 3))
+                            , SA.x2 (String.fromFloat px)
+                            , SA.y2 (String.fromFloat (py + diameter + 3))
+                            , SA.stroke "#88ddff"
+                            , SA.strokeWidth "2"
+                            , SA.opacity "0.6"
+                            , SA.transform (rotateTransform body)
+                            ]
+                            []
+                        ]
+
+                     else
+                        []
+                    )
+                        ++ (if rightOpen then
+                                [ line
+                                    [ SA.x1 (String.fromFloat (px + length))
+                                    , SA.y1 (String.fromFloat (py - 3))
+                                    , SA.x2 (String.fromFloat (px + length))
+                                    , SA.y2 (String.fromFloat (py + diameter + 3))
+                                    , SA.stroke "#88ddff"
+                                    , SA.strokeWidth "2"
+                                    , SA.opacity "0.6"
+                                    , SA.transform (rotateTransform body)
+                                    ]
+                                    []
+                                ]
+
+                            else
+                                []
+                           )
+
+                holeMarkers =
+                    List.map
+                        (\hPos ->
+                            circle
+                                [ SA.cx (String.fromFloat (px + hPos * length))
+                                , SA.cy (String.fromFloat body.pos.y)
+                                , SA.r "3"
+                                , SA.fill "#0a0a0f"
+                                , SA.stroke "#88ddff"
+                                , SA.strokeWidth "1"
+                                , SA.opacity "0.7"
+                                , SA.transform (rotateTransform body)
+                                ]
+                                []
+                        )
+                        holes
+            in
+            g commonAttrs
+                ([ rect
+                    [ SA.x (String.fromFloat px)
+                    , SA.y (String.fromFloat py)
+                    , SA.width (String.fromFloat length)
+                    , SA.height (String.fromFloat diameter)
+                    , SA.fill mat.color
+                    , SA.opacity (String.fromFloat pipeAlpha)
+                    , SA.transform (rotateTransform body)
+                    ]
+                    []
+                 , rect
+                    [ SA.x (String.fromFloat (px + 2))
+                    , SA.y (String.fromFloat (py + 2))
+                    , SA.width (String.fromFloat (length - 4))
+                    , SA.height (String.fromFloat (diameter - 4))
+                    , SA.fill "#0a0a0f"
+                    , SA.opacity (String.fromFloat (pipeAlpha * 0.7))
+                    , SA.transform (rotateTransform body)
+                    ]
+                    []
+                 , Svg.title [] [ text label ]
+                 ]
+                    ++ openEndMarkers
+                    ++ holeMarkers
+                )
+
 
 rotateTransform : Body -> String
 rotateTransform body =
@@ -362,6 +501,32 @@ viewCursor model =
                             , SA.opacity "0.4"
                             , SA.strokeDasharray "6 4"
                             , SA.rx "3"
+                            ]
+                            []
+                        ]
+
+                    PipeTool ->
+                        [ rect
+                            [ SA.x (String.fromFloat (model.ui.cursor.pos.x - 40))
+                            , SA.y (String.fromFloat (model.ui.cursor.pos.y - 8))
+                            , SA.width "80"
+                            , SA.height "16"
+                            , SA.fill "none"
+                            , SA.stroke mat.color
+                            , SA.strokeWidth "1.5"
+                            , SA.opacity "0.4"
+                            , SA.strokeDasharray "6 4"
+                            ]
+                            []
+                        , rect
+                            [ SA.x (String.fromFloat (model.ui.cursor.pos.x - 38))
+                            , SA.y (String.fromFloat (model.ui.cursor.pos.y - 6))
+                            , SA.width "76"
+                            , SA.height "12"
+                            , SA.fill "none"
+                            , SA.stroke mat.color
+                            , SA.strokeWidth "0.5"
+                            , SA.opacity "0.3"
                             ]
                             []
                         ]

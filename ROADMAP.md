@@ -429,7 +429,7 @@ Exit criteria:
 
 
 ========================================================================
-5. MILESTONE 4 — PIPES & BREATH
+5. MILESTONE 4 — PIPES & BREATH                               [COMPLETE]
 ========================================================================
 
 Goal: Pipe objects as hollow resonating bodies, breath as excitation

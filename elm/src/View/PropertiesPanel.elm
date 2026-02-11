@@ -68,6 +68,12 @@ viewPropertiesPanel body changeMsg closeMsg =
                     [ propRow "Width" (round w) 5 (\d -> changeMsg (AdjWidth d))
                     , propRow "Height" (round h) 5 (\d -> changeMsg (AdjHeight d))
                     ]
+
+            Pipe { length, diameter } ->
+                div []
+                    [ propRow "Length" (round length) 5 (\d -> changeMsg (AdjWidth d))
+                    , propRow "Diameter" (round diameter) 5 (\d -> changeMsg (AdjHeight d))
+                    ]
         , propRowFloat "Mass" body.mass 0.5 (\d -> changeMsg (AdjMass d))
         , propRowFloat "Friction" body.friction 0.05 (\d -> changeMsg (AdjFriction d))
         , propRowFloat "Bounce" body.restitution 0.05 (\d -> changeMsg (AdjRestitution d))
