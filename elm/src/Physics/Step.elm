@@ -31,8 +31,11 @@ step constraints bounds stepCount links bodies =
         collisionResult =
             Physics.Collisions.detectAndResolve constraints.collisionMode stepCount bounded
 
+        transferred =
+            Physics.Energy.transferEnergyThroughLinks constraints.energyTransferRate links collisionResult.bodies
+
         decayed =
-            Physics.Energy.decayEnergy 0.95 collisionResult.bodies
+            Physics.Energy.decayEnergy constraints.energyDecay transferred
     in
     { bodies = decayed
     , events = collisionResult.events

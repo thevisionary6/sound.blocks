@@ -1,4 +1,4 @@
-port module Ports exposing (sendAudioEvent, sendBreathEvent, sendMixerCommand)
+port module Ports exposing (requestLoadScene, saveScene, sceneLoaded, sendAudioEvent, sendBreathEvent, sendMixerCommand, sendSaveScene)
 
 import Json.Encode as Encode
 
@@ -10,6 +10,15 @@ port mixerCommand : Encode.Value -> Cmd msg
 
 
 port breathEvent : Encode.Value -> Cmd msg
+
+
+port saveScene : Encode.Value -> Cmd msg
+
+
+port requestLoadScene : () -> Cmd msg
+
+
+port sceneLoaded : (String -> msg) -> Sub msg
 
 
 sendAudioEvent :
@@ -88,3 +97,8 @@ sendBreathEvent event =
             , ( "materialName", Encode.string event.materialName )
             ]
         )
+
+
+sendSaveScene : Encode.Value -> Cmd msg
+sendSaveScene json =
+    saveScene json

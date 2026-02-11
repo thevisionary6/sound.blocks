@@ -492,7 +492,7 @@ Exit criteria:
 
 
 ========================================================================
-6. MILESTONE 5 — EXPANSION
+6. MILESTONE 5 — EXPANSION                                  [COMPLETE]
 ========================================================================
 
 Goal: Extended shape library, energy circuits, save/load, mod scripting.

@@ -206,6 +206,20 @@ selectionRing isSelected body =
                     []
                 ]
 
+            Poly { points, boundingR } ->
+                [ circle
+                    [ SA.cx (String.fromFloat body.pos.x)
+                    , SA.cy (String.fromFloat body.pos.y)
+                    , SA.r (String.fromFloat (boundingR + 4))
+                    , SA.fill "none"
+                    , SA.stroke "#ff6b3d"
+                    , SA.strokeWidth "2"
+                    , SA.strokeDasharray "4 3"
+                    , SA.opacity "0.7"
+                    ]
+                    []
+                ]
+
     else
         []
 
@@ -262,6 +276,19 @@ energyRing glow body =
                     , SA.strokeWidth "1.5"
                     , SA.opacity (String.fromFloat (glow * 0.6))
                     , SA.transform (rotateTransform body)
+                    ]
+                    []
+                ]
+
+            Poly { boundingR } ->
+                [ circle
+                    [ SA.cx (String.fromFloat body.pos.x)
+                    , SA.cy (String.fromFloat body.pos.y)
+                    , SA.r (String.fromFloat (boundingR + 2 + glow * 8))
+                    , SA.fill "none"
+                    , SA.stroke "#ffaa33"
+                    , SA.strokeWidth "1.5"
+                    , SA.opacity (String.fromFloat (glow * 0.6))
                     ]
                     []
                 ]
@@ -444,6 +471,62 @@ viewShape isSelected toMsg body =
                     ++ holeMarkers
                 )
 
+        Poly { points } ->
+            let
+                polyAlpha =
+                    if isSelected then
+                        mat.alpha
+
+                    else
+                        mat.alpha * 0.85
+
+                pointsStr =
+                    worldPointsString body.pos body.rot points
+            in
+            Svg.polygon
+                ([ SA.points pointsStr
+                 , SA.fill mat.color
+                 , SA.opacity (String.fromFloat polyAlpha)
+                 ]
+                    ++ commonAttrs
+                )
+                [ Svg.title [] [ text label ] ]
+
+
+polyPreview : Vec2 -> List Vec2 -> String -> List (Svg msg)
+polyPreview pos pts color =
+    [ Svg.polygon
+        [ SA.points (worldPointsString pos 0 pts)
+        , SA.fill "none"
+        , SA.stroke color
+        , SA.strokeWidth "1.5"
+        , SA.opacity "0.4"
+        , SA.strokeDasharray "6 4"
+        ]
+        []
+    ]
+
+
+worldPointsString : Vec2 -> Float -> List Vec2 -> String
+worldPointsString pos rot pts =
+    let
+        cosR =
+            cos rot
+
+        sinR =
+            sin rot
+
+        transform p =
+            if abs rot < 0.001 then
+                String.fromFloat (pos.x + p.x) ++ "," ++ String.fromFloat (pos.y + p.y)
+
+            else
+                String.fromFloat (pos.x + p.x * cosR - p.y * sinR)
+                    ++ ","
+                    ++ String.fromFloat (pos.y + p.x * sinR + p.y * cosR)
+    in
+    String.join " " (List.map transform pts)
+
 
 rotateTransform : Body -> String
 rotateTransform body =
@@ -530,6 +613,21 @@ viewCursor model =
                             ]
                             []
                         ]
+
+                    TriangleTool ->
+                        polyPreview model.ui.cursor.pos (Model.trianglePoints 20) mat.color
+
+                    PentagonTool ->
+                        polyPreview model.ui.cursor.pos (Model.pentagonPoints 20) mat.color
+
+                    HexagonTool ->
+                        polyPreview model.ui.cursor.pos (Model.hexagonPoints 20) mat.color
+
+                    ParallelogramTool ->
+                        polyPreview model.ui.cursor.pos (Model.parallelogramPoints 40 30) mat.color
+
+                    TrapezoidTool ->
+                        polyPreview model.ui.cursor.pos (Model.trapezoidPoints 40 30) mat.color
         in
         previewShape
             ++ [ line

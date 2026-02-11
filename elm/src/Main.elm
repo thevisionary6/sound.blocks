@@ -17,6 +17,7 @@ import View.MaterialPanel exposing (viewMaterialPanel)
 import View.MixerPanel exposing (viewMixerPanel)
 import View.PropertiesPanel exposing (viewPropertiesPanel)
 import View.Svg exposing (viewWorld)
+import View.WorldPanel exposing (viewWorldPanel)
 
 
 main : Program () Model Msg
@@ -54,6 +55,8 @@ view model =
             , zoomOut = ZoomOut
             , zoomReset = ZoomReset
             , setMode = SetMode
+            , saveScene = SaveScene
+            , loadScene = LoadScene
             }
         , div
             [ style "flex" "1"
@@ -140,3 +143,9 @@ viewPanelOverlay model =
                 model.mixer
                 MixerUpdate
                 (TogglePanel MixerPanel)
+
+        WorldPanel ->
+            viewWorldPanel
+                model.constraints
+                AdjustWorld
+                (TogglePanel WorldPanel)

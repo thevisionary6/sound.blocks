@@ -4,15 +4,19 @@ import Browser.Events
 import Dict
 import History
 import Json.Decode as Decode
+import Json.Decode as JD
+import Json.Encode as JE
 import Material
 import Mixer exposing (MixerMsg(..), updateMixer)
 import Model exposing (..)
+import Serialization
 import Physics.Resonance
 import Physics.Step
 import Ports
 import Time
 import View.PropertiesPanel exposing (PropertyChange(..))
 import View.Svg
+import View.WorldPanel exposing (WorldChange(..))
 
 
 type Msg
@@ -44,6 +48,10 @@ type Msg
     | BreathStop
     | DrillHole BodyId Float
     | SetMode UiMode
+    | AdjustWorld WorldChange
+    | SaveScene
+    | LoadScene
+    | SceneLoaded String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -283,6 +291,21 @@ update msg model =
 
                         PipeTool ->
                             "Pipe tool selected."
+
+                        TriangleTool ->
+                            "Triangle tool selected."
+
+                        PentagonTool ->
+                            "Pentagon tool selected."
+
+                        HexagonTool ->
+                            "Hexagon tool selected."
+
+                        ParallelogramTool ->
+                            "Parallelogram tool selected."
+
+                        TrapezoidTool ->
+                            "Trapezoid tool selected."
             in
             ( announce toolName { model | ui = { ui | drawTool = tool } }
             , Cmd.none
@@ -466,6 +489,49 @@ update msg model =
                 { model | ui = { ui | mode = newMode } }
             , Cmd.none
             )
+
+        AdjustWorld worldChange ->
+            ( applyWorldChange worldChange model, Cmd.none )
+
+        SaveScene ->
+            ( announce "Scene saved."
+                model
+            , Ports.sendSaveScene (Serialization.encodeScene model)
+            )
+
+        LoadScene ->
+            ( announce "Loading scene..."
+                model
+            , Ports.requestLoadScene ()
+            )
+
+        SceneLoaded jsonStr ->
+            case JD.decodeString Serialization.decodeScene jsonStr of
+                Ok scene ->
+                    ( announce
+                        ("Scene loaded. "
+                            ++ String.fromInt (Dict.size scene.bodies)
+                            ++ " bodies."
+                        )
+                        { model
+                            | bodies = scene.bodies
+                            , nextId = scene.nextId
+                            , links = scene.links
+                            , nextLinkId = scene.nextLinkId
+                            , constraints = scene.constraints
+                            , mixer = scene.mixer
+                            , camera = scene.camera
+                            , bounds = scene.bounds
+                            , history = History.empty
+                        }
+                    , sendMixerState scene.mixer
+                    )
+
+                Err _ ->
+                    ( announce "Failed to load scene: invalid format."
+                        model
+                    , Cmd.none
+                    )
 
 
 
@@ -835,6 +901,12 @@ handleKey key ctrl shift model =
     else if ctrl && key == "y" then
         update Redo model
 
+    else if ctrl && key == "s" then
+        update SaveScene model
+
+    else if ctrl && key == "o" then
+        update LoadScene model
+
     else
         handleNonModifierKey key model
 
@@ -878,6 +950,21 @@ handleNonModifierKey key model =
         "3" ->
             update (SetDrawTool PipeTool) model
 
+        "4" ->
+            update (SetDrawTool TriangleTool) model
+
+        "5" ->
+            update (SetDrawTool PentagonTool) model
+
+        "6" ->
+            update (SetDrawTool HexagonTool) model
+
+        "7" ->
+            update (SetDrawTool ParallelogramTool) model
+
+        "8" ->
+            update (SetDrawTool TrapezoidTool) model
+
         "b" ->
             update (SetMode BreathMode) model
 
@@ -892,6 +979,9 @@ handleNonModifierKey key model =
 
         "x" ->
             update (TogglePanel MixerPanel) model
+
+        "w" ->
+            update (TogglePanel WorldPanel) model
 
         "+" ->
             update ZoomIn model
@@ -1030,6 +1120,21 @@ placeShapeAt pos model =
 
                 PipeTool ->
                     makePipe model.nextId pos 80 16 matName
+
+                TriangleTool ->
+                    makePoly model.nextId pos (trianglePoints 20) "Triangle" matName
+
+                PentagonTool ->
+                    makePoly model.nextId pos (pentagonPoints 20) "Pentagon" matName
+
+                HexagonTool ->
+                    makePoly model.nextId pos (hexagonPoints 20) "Hexagon" matName
+
+                ParallelogramTool ->
+                    makePoly model.nextId pos (parallelogramPoints 40 30) "Parallelogram" matName
+
+                TrapezoidTool ->
+                    makePoly model.nextId pos (trapezoidPoints 40 30) "Trapezoid" matName
 
         newBodies =
             Dict.insert model.nextId newBody model.bodies
@@ -1333,6 +1438,33 @@ sendMixerState mixer =
 
 
 
+-- WORLD CONSTANT CHANGES
+
+
+applyWorldChange : WorldChange -> Model -> Model
+applyWorldChange change model =
+    let
+        c =
+            model.constraints
+    in
+    case change of
+        AdjGravityX d ->
+            { model | constraints = { c | gravity = { x = c.gravity.x + d, y = c.gravity.y } } }
+
+        AdjGravityY d ->
+            { model | constraints = { c | gravity = { x = c.gravity.x, y = c.gravity.y + d } } }
+
+        AdjDamping d ->
+            { model | constraints = { c | damping = clamp 0.9 1.0 (c.damping + d) } }
+
+        AdjEnergyDecay d ->
+            { model | constraints = { c | energyDecay = clamp 0.5 1.0 (c.energyDecay + d) } }
+
+        AdjEnergyTransfer d ->
+            { model | constraints = { c | energyTransferRate = clamp 0 1.0 (c.energyTransferRate + d) } }
+
+
+
 -- SUBSCRIPTIONS
 
 
@@ -1345,6 +1477,7 @@ subscriptions model =
           else
             Sub.none
         , Browser.Events.onKeyDown keyDecoder
+        , Ports.sceneLoaded SceneLoaded
         , case model.ui.pointer of
             Idle ->
                 Sub.none

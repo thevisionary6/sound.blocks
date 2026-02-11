@@ -21,6 +21,8 @@ type alias ControlMsgs msg =
     , zoomOut : msg
     , zoomReset : msg
     , setMode : UiMode -> msg
+    , saveScene : msg
+    , loadScene : msg
     }
 
 
@@ -51,6 +53,8 @@ viewControls model msgs =
         , sep
         , controlButton "Undo" msgs.undo
         , controlButton "Redo" msgs.redo
+        , controlButton "Save" msgs.saveScene
+        , controlButton "Load" msgs.loadScene
         , sep
         , viewDrawToolPicker model.ui.drawTool msgs.setDrawTool
         , toolButton "Mat (M)"
@@ -65,6 +69,9 @@ viewControls model msgs =
         , toolButton "Mixer (X)"
             (model.ui.panel == MixerPanel)
             (msgs.togglePanel MixerPanel)
+        , toolButton "World (W)"
+            (model.ui.panel == WorldPanel)
+            (msgs.togglePanel WorldPanel)
         , sep
         , toolButton "Breath (B)"
             (model.ui.mode == BreathMode)
@@ -132,10 +139,15 @@ modeButtonLabel mode =
 
 viewDrawToolPicker : DrawTool -> (DrawTool -> msg) -> Html msg
 viewDrawToolPicker current setTool =
-    span [ style "display" "flex", style "gap" "3px" ]
+    span [ style "display" "flex", style "gap" "3px", style "flex-wrap" "wrap" ]
         [ toolButton "Circle" (current == CircleTool) (setTool CircleTool)
         , toolButton "Rect" (current == RectTool) (setTool RectTool)
         , toolButton "Pipe" (current == PipeTool) (setTool PipeTool)
+        , toolButton "Tri" (current == TriangleTool) (setTool TriangleTool)
+        , toolButton "Pent" (current == PentagonTool) (setTool PentagonTool)
+        , toolButton "Hex" (current == HexagonTool) (setTool HexagonTool)
+        , toolButton "Para" (current == ParallelogramTool) (setTool ParallelogramTool)
+        , toolButton "Trap" (current == TrapezoidTool) (setTool TrapezoidTool)
         ]
 
 

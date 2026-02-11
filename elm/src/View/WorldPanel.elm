@@ -1,4 +1,4 @@
-module View.PropertiesPanel exposing (PropertyChange(..), viewPropertiesPanel)
+module View.WorldPanel exposing (WorldChange(..), viewWorldPanel)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -6,19 +6,16 @@ import Html.Events exposing (onClick)
 import Model exposing (..)
 
 
-type PropertyChange
-    = AdjPosX Float
-    | AdjPosY Float
-    | AdjRadius Float
-    | AdjWidth Float
-    | AdjHeight Float
-    | AdjMass Float
-    | AdjFriction Float
-    | AdjRestitution Float
+type WorldChange
+    = AdjGravityX Float
+    | AdjGravityY Float
+    | AdjDamping Float
+    | AdjEnergyDecay Float
+    | AdjEnergyTransfer Float
 
 
-viewPropertiesPanel : Body -> (PropertyChange -> msg) -> msg -> Html msg
-viewPropertiesPanel body changeMsg closeMsg =
+viewWorldPanel : Constraints -> (WorldChange -> msg) -> msg -> Html msg
+viewWorldPanel constraints changeMsg closeMsg =
     div
         [ style "position" "absolute"
         , style "top" "60px"
@@ -28,11 +25,11 @@ viewPropertiesPanel body changeMsg closeMsg =
         , style "border-radius" "8px"
         , style "padding" "12px"
         , style "z-index" "100"
-        , style "min-width" "220px"
+        , style "min-width" "240px"
         , style "font-family" "'JetBrains Mono', monospace"
         , style "font-size" "11px"
         , attribute "role" "dialog"
-        , attribute "aria-label" "Body properties"
+        , attribute "aria-label" "World constants"
         ]
         [ div
             [ style "display" "flex"
@@ -45,7 +42,7 @@ viewPropertiesPanel body changeMsg closeMsg =
                 , style "font-size" "13px"
                 , style "font-family" "'Outfit', sans-serif"
                 ]
-                [ text (bodyLabel body) ]
+                [ text "World Constants" ]
             , button
                 [ onClick closeMsg
                 , style "background" "none"
@@ -53,39 +50,36 @@ viewPropertiesPanel body changeMsg closeMsg =
                 , style "color" "#7a7a8e"
                 , style "cursor" "pointer"
                 , style "font-size" "14px"
-                , attribute "aria-label" "Close properties panel"
+                , attribute "aria-label" "Close world panel"
                 ]
                 [ text "x" ]
             ]
-        , propRow "Pos X" (round body.pos.x) 5 (\d -> changeMsg (AdjPosX d))
-        , propRow "Pos Y" (round body.pos.y) 5 (\d -> changeMsg (AdjPosY d))
-        , case body.shape of
-            Circle { r } ->
-                propRow "Radius" (round r) 2 (\d -> changeMsg (AdjRadius d))
-
-            Rect { w, h } ->
-                div []
-                    [ propRow "Width" (round w) 5 (\d -> changeMsg (AdjWidth d))
-                    , propRow "Height" (round h) 5 (\d -> changeMsg (AdjHeight d))
-                    ]
-
-            Pipe { length, diameter } ->
-                div []
-                    [ propRow "Length" (round length) 5 (\d -> changeMsg (AdjWidth d))
-                    , propRow "Diameter" (round diameter) 5 (\d -> changeMsg (AdjHeight d))
-                    ]
-
-            Poly { points } ->
-                span [ style "color" "#7a7a8e" ]
-                    [ text (String.fromInt (List.length points) ++ "-sided polygon") ]
-        , propRowFloat "Mass" body.mass 0.5 (\d -> changeMsg (AdjMass d))
-        , propRowFloat "Friction" body.friction 0.05 (\d -> changeMsg (AdjFriction d))
-        , propRowFloat "Bounce" body.restitution 0.05 (\d -> changeMsg (AdjRestitution d))
+        , sectionLabel "Gravity"
+        , adjRow "Grav X" (round constraints.gravity.x) 50 (\d -> changeMsg (AdjGravityX d))
+        , adjRow "Grav Y" (round constraints.gravity.y) 50 (\d -> changeMsg (AdjGravityY d))
+        , sectionLabel "Physics"
+        , adjRowFloat "Damping" constraints.damping 0.005 (\d -> changeMsg (AdjDamping d))
+        , sectionLabel "Energy"
+        , adjRowFloat "Decay" constraints.energyDecay 0.01 (\d -> changeMsg (AdjEnergyDecay d))
+        , adjRowFloat "Transfer" constraints.energyTransferRate 0.02 (\d -> changeMsg (AdjEnergyTransfer d))
         ]
 
 
-propRow : String -> Int -> Float -> (Float -> msg) -> Html msg
-propRow label val step toMsg =
+sectionLabel : String -> Html msg
+sectionLabel label =
+    div
+        [ style "color" "#7a7a8e"
+        , style "font-size" "9px"
+        , style "text-transform" "uppercase"
+        , style "letter-spacing" "1px"
+        , style "margin-top" "8px"
+        , style "margin-bottom" "4px"
+        ]
+        [ text label ]
+
+
+adjRow : String -> Int -> Float -> (Float -> msg) -> Html msg
+adjRow label val step toMsg =
     div
         [ style "display" "flex"
         , style "align-items" "center"
@@ -94,7 +88,7 @@ propRow label val step toMsg =
         ]
         [ span
             [ style "color" "#7a7a8e"
-            , style "min-width" "60px"
+            , style "min-width" "70px"
             ]
             [ text label ]
         , adjButton "-" (toMsg -step)
@@ -108,11 +102,11 @@ propRow label val step toMsg =
         ]
 
 
-propRowFloat : String -> Float -> Float -> (Float -> msg) -> Html msg
-propRowFloat label val step toMsg =
+adjRowFloat : String -> Float -> Float -> (Float -> msg) -> Html msg
+adjRowFloat label val step toMsg =
     let
         display =
-            String.fromFloat (toFloat (round (val * 100)) / 100)
+            String.fromFloat (toFloat (round (val * 1000)) / 1000)
     in
     div
         [ style "display" "flex"
@@ -122,7 +116,7 @@ propRowFloat label val step toMsg =
         ]
         [ span
             [ style "color" "#7a7a8e"
-            , style "min-width" "60px"
+            , style "min-width" "70px"
             ]
             [ text label ]
         , adjButton "-" (toMsg -step)

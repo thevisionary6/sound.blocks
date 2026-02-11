@@ -96,6 +96,9 @@ shapeDescription shape =
         Pipe { length, diameter } ->
             "Pipe (" ++ String.fromInt (round length) ++ "x" ++ String.fromInt (round diameter) ++ ")"
 
+        Poly { points } ->
+            "Polygon (" ++ String.fromInt (List.length points) ++ " sides)"
+
 
 pipeProperties : Body -> List (Html msg)
 pipeProperties body =

@@ -67,6 +67,43 @@
       });
     }
 
+    // Save scene: download JSON file
+    if (app.ports && app.ports.saveScene) {
+      app.ports.saveScene.subscribe(function(json) {
+        var str = JSON.stringify(json, null, 2);
+        var blob = new Blob([str], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'sound-blocks-scene.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    // Load scene: open file picker and send contents to Elm
+    if (app.ports && app.ports.requestLoadScene) {
+      app.ports.requestLoadScene.subscribe(function() {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = function(e) {
+          var file = e.target.files[0];
+          if (!file) return;
+          var reader = new FileReader();
+          reader.onload = function(ev) {
+            if (app.ports.sceneLoaded) {
+              app.ports.sceneLoaded.send(ev.target.result);
+            }
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      });
+    }
+
     // Prevent default on keys that Elm handles
     document.addEventListener('keydown', function(e) {
       var handled = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', ' '];
@@ -77,6 +114,10 @@
       }
       // Prevent browser undo/redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
       if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'y')) {
+        e.preventDefault();
+      }
+      // Prevent browser save/open (Ctrl+S, Ctrl+O)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'o')) {
         e.preventDefault();
       }
     });
