@@ -3,6 +3,7 @@ module Model exposing (..)
 import Dict exposing (Dict)
 import History exposing (History)
 import Material
+import Mixer exposing (MixerState)
 
 
 -- SNAPSHOT (for undo/redo)
@@ -11,6 +12,8 @@ import Material
 type alias Snapshot =
     { bodies : Dict BodyId Body
     , nextId : BodyId
+    , links : Dict LinkId Link
+    , nextLinkId : LinkId
     }
 
 
@@ -81,6 +84,8 @@ type alias BodyId =
 type Shape
     = Circle { r : Float }
     | Rect { w : Float, h : Float }
+    | Pipe { length : Float, diameter : Float, openEnds : ( Bool, Bool ), holes : List Float }
+    | Poly { points : List Vec2, boundingR : Float }
 
 
 
@@ -121,7 +126,36 @@ type alias Camera =
 
 
 
--- CONSTRAINTS
+-- LINKS (physical constraints between bodies)
+
+
+type alias LinkId =
+    Int
+
+
+type LinkKind
+    = StringLink { length : Float }
+    | SpringLink { restLength : Float, stiffness : Float }
+    | RopeLink { maxLength : Float }
+    | WeldLink { relativeOffset : Vec2 }
+
+
+type alias Link =
+    { id : LinkId
+    , kind : LinkKind
+    , bodyA : BodyId
+    , bodyB : BodyId
+    }
+
+
+type LinkCreation
+    = NotCreating
+    | PickingFirst LinkKind
+    | PickingSecond LinkKind BodyId
+
+
+
+-- SIM CONSTRAINTS
 
 
 type BoundaryMode
@@ -142,6 +176,8 @@ type alias Constraints =
     , damping : Float
     , boundaryMode : BoundaryMode
     , collisionMode : CollisionMode
+    , energyDecay : Float
+    , energyTransferRate : Float
     }
 
 
@@ -165,11 +201,19 @@ type UiMode
     | SelectMode
     | RunMode
     | InspectMode
+    | BreathMode
+    | DrillMode
 
 
 type DrawTool
     = CircleTool
     | RectTool
+    | PipeTool
+    | TriangleTool
+    | PentagonTool
+    | HexagonTool
+    | ParallelogramTool
+    | TrapezoidTool
 
 
 type alias Cursor =
@@ -182,6 +226,9 @@ type Panel
     = NoPanel
     | MaterialPanel
     | PropertiesPanel
+    | ConstraintPanel
+    | MixerPanel
+    | WorldPanel
 
 
 type PointerAction
@@ -199,6 +246,8 @@ type alias UiState =
     , panel : Panel
     , pointer : PointerAction
     , activeMaterial : String
+    , linkCreation : LinkCreation
+    , breathTarget : Maybe BodyId
     }
 
 
@@ -245,6 +294,8 @@ type alias Bounds =
 type alias Model =
     { bodies : Dict BodyId Body
     , nextId : BodyId
+    , links : Dict LinkId Link
+    , nextLinkId : LinkId
     , bounds : Bounds
     , constraints : Constraints
     , sim : SimState
@@ -252,6 +303,7 @@ type alias Model =
     , log : EventLog
     , camera : Camera
     , history : History Snapshot
+    , mixer : MixerState
     }
 
 
@@ -309,6 +361,131 @@ makeRect id pos w h matName =
     }
 
 
+makePipe : BodyId -> Vec2 -> Float -> Float -> String -> Body
+makePipe id pos len diam matName =
+    let
+        mat =
+            Material.getMaterial matName
+    in
+    { id = id
+    , shape = Pipe { length = len, diameter = diam, openEnds = ( True, True ), holes = [] }
+    , pos = pos
+    , vel = vecZero
+    , rot = 0
+    , angVel = 0
+    , mass = mat.density * len * diam * 0.0001
+    , restitution = mat.restitution
+    , friction = mat.friction
+    , energy = 0
+    , tags = [ "pipe" ]
+    , a11y =
+        { name = "Pipe " ++ String.fromInt id
+        , description = mat.name ++ " pipe " ++ String.fromInt (round len) ++ "x" ++ String.fromInt (round diam)
+        }
+    , materialName = matName
+    }
+
+
+makePoly : BodyId -> Vec2 -> List Vec2 -> String -> String -> Body
+makePoly id pos points shapeName matName =
+    let
+        mat =
+            Material.getMaterial matName
+
+        br =
+            List.foldl (\p mx -> max mx (vecLen p)) 0 points
+
+        area =
+            abs (polyArea points)
+    in
+    { id = id
+    , shape = Poly { points = points, boundingR = br }
+    , pos = pos
+    , vel = vecZero
+    , rot = 0
+    , angVel = 0
+    , mass = mat.density * area * 0.001
+    , restitution = mat.restitution
+    , friction = mat.friction
+    , energy = 0
+    , tags = []
+    , a11y =
+        { name = shapeName ++ " " ++ String.fromInt id
+        , description = mat.name ++ " " ++ shapeName
+        }
+    , materialName = matName
+    }
+
+
+polyArea : List Vec2 -> Float
+polyArea pts =
+    case pts of
+        [] ->
+            0
+
+        first :: _ ->
+            let
+                shifted =
+                    List.drop 1 pts ++ [ first ]
+
+                pairs =
+                    List.map2 Tuple.pair pts shifted
+            in
+            List.foldl (\( a, b ) acc -> acc + (a.x * b.y - b.x * a.y)) 0 pairs / 2
+
+
+regularPolygon : Int -> Float -> List Vec2
+regularPolygon sides radius =
+    List.map
+        (\i ->
+            let
+                angle =
+                    toFloat i * 2 * pi / toFloat sides - pi / 2
+            in
+            { x = radius * cos angle
+            , y = radius * sin angle
+            }
+        )
+        (List.range 0 (sides - 1))
+
+
+trianglePoints : Float -> List Vec2
+trianglePoints r =
+    regularPolygon 3 r
+
+
+pentagonPoints : Float -> List Vec2
+pentagonPoints r =
+    regularPolygon 5 r
+
+
+hexagonPoints : Float -> List Vec2
+hexagonPoints r =
+    regularPolygon 6 r
+
+
+parallelogramPoints : Float -> Float -> List Vec2
+parallelogramPoints w h =
+    let
+        skew =
+            w * 0.25
+    in
+    [ { x = -w / 2 + skew, y = -h / 2 }
+    , { x = w / 2 + skew, y = -h / 2 }
+    , { x = w / 2 - skew, y = h / 2 }
+    , { x = -w / 2 - skew, y = h / 2 }
+    ]
+
+
+trapezoidPoints : Float -> Float -> List Vec2
+trapezoidPoints w h =
+    [ { x = -w * 0.3, y = -h / 2 }
+    , { x = w * 0.3, y = -h / 2 }
+    , { x = w / 2, y = h / 2 }
+    , { x = -w / 2, y = h / 2 }
+    ]
+
+
 bodyRadius : Body -> Float
 bodyRadius body =
     case body.shape of
@@ -317,6 +494,12 @@ bodyRadius body =
 
         Rect { w, h } ->
             sqrt (w * w + h * h) / 2
+
+        Pipe { length, diameter } ->
+            sqrt (length * length + diameter * diameter) / 2
+
+        Poly { boundingR } ->
+            boundingR
 
 
 bodyLabel : Body -> String
@@ -332,6 +515,8 @@ initialModel : Model
 initialModel =
     { bodies = Dict.empty
     , nextId = 1
+    , links = Dict.empty
+    , nextLinkId = 1
     , bounds = { width = 800, height = 600 }
     , constraints =
         { tickRateHz = 30
@@ -339,6 +524,8 @@ initialModel =
         , damping = 0.999
         , boundaryMode = Bounce
         , collisionMode = EnergeticCollisions
+        , energyDecay = 0.95
+        , energyTransferRate = 0.1
         }
     , sim =
         { running = True
@@ -357,6 +544,8 @@ initialModel =
         , panel = NoPanel
         , pointer = Idle
         , activeMaterial = "Rubber"
+        , linkCreation = NotCreating
+        , breathTarget = Nothing
         }
     , log =
         { announcements =
@@ -368,6 +557,7 @@ initialModel =
         , zoom = 1.0
         }
     , history = History.empty
+    , mixer = Mixer.defaultMixer
     }
 
 

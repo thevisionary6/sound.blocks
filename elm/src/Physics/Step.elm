@@ -3,6 +3,7 @@ module Physics.Step exposing (step)
 import Dict exposing (Dict)
 import Model exposing (..)
 import Physics.Collisions
+import Physics.ConstraintSolver
 import Physics.Energy
 
 
@@ -12,8 +13,8 @@ type alias StepResult =
     }
 
 
-step : Constraints -> Bounds -> Int -> Dict BodyId Body -> StepResult
-step constraints bounds stepCount bodies =
+step : Constraints -> Bounds -> Int -> Dict LinkId Link -> Dict BodyId Body -> StepResult
+step constraints bounds stepCount links bodies =
     let
         dt =
             1.0 / toFloat constraints.tickRateHz
@@ -21,14 +22,20 @@ step constraints bounds stepCount bodies =
         integrated =
             Dict.map (\_ b -> integrate constraints dt b) bodies
 
+        constrained =
+            Physics.ConstraintSolver.solve links dt integrated
+
         bounded =
-            Dict.map (\_ b -> applyBoundary constraints.boundaryMode bounds b) integrated
+            Dict.map (\_ b -> applyBoundary constraints.boundaryMode bounds b) constrained
 
         collisionResult =
             Physics.Collisions.detectAndResolve constraints.collisionMode stepCount bounded
 
+        transferred =
+            Physics.Energy.transferEnergyThroughLinks constraints.energyTransferRate links collisionResult.bodies
+
         decayed =
-            Physics.Energy.decayEnergy 0.95 collisionResult.bodies
+            Physics.Energy.decayEnergy constraints.energyDecay transferred
     in
     { bodies = decayed
     , events = collisionResult.events

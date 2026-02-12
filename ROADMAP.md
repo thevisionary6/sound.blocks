@@ -94,7 +94,7 @@ Status: DONE. All M0 deliverables are shipped.
 
 
 ========================================================================
-2. MILESTONE 1 — MVP SANDBOX
+2. MILESTONE 1 — MVP SANDBOX                                [COMPLETE]
 ========================================================================
 
 Goal: Full sandbox interaction — pan/zoom, drag-move, editable
@@ -230,7 +230,7 @@ Exit criteria:
 
 
 ========================================================================
-3. MILESTONE 2 — CONSTRAINTS PACK
+3. MILESTONE 2 — CONSTRAINTS PACK                           [COMPLETE]
 ========================================================================
 
 Goal: Connect objects with physical constraints — strings, springs,
@@ -330,7 +330,7 @@ Exit criteria:
 
 
 ========================================================================
-4. MILESTONE 3 — MIXER v1
+4. MILESTONE 3 — MIXER v1                                     [COMPLETE]
 ========================================================================
 
 Goal: Audio mixer panel with master meter, 1-2 global effects, and
@@ -429,7 +429,7 @@ Exit criteria:
 
 
 ========================================================================
-5. MILESTONE 4 — PIPES & BREATH
+5. MILESTONE 4 — PIPES & BREATH                               [COMPLETE]
 ========================================================================
 
 Goal: Pipe objects as hollow resonating bodies, breath as excitation
@@ -492,7 +492,7 @@ Exit criteria:
 
 
 ========================================================================
-6. MILESTONE 5 — EXPANSION
+6. MILESTONE 5 — EXPANSION                                  [COMPLETE]
 ========================================================================
 
 Goal: Extended shape library, energy circuits, save/load, mod scripting.

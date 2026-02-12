@@ -9,11 +9,15 @@ import Json.Decode as Decode
 import Model exposing (..)
 import Update exposing (Msg(..), subscriptions, update)
 import View.A11y exposing (viewAnnouncement, viewEventLog)
+import Mixer exposing (MixerMsg)
 import View.Controls exposing (viewControls)
 import View.Inspector exposing (viewInspector)
+import View.ConstraintPanel exposing (viewConstraintPanel)
 import View.MaterialPanel exposing (viewMaterialPanel)
+import View.MixerPanel exposing (viewMixerPanel)
 import View.PropertiesPanel exposing (viewPropertiesPanel)
 import View.Svg exposing (viewWorld)
+import View.WorldPanel exposing (viewWorldPanel)
 
 
 main : Program () Model Msg
@@ -50,6 +54,9 @@ view model =
             , zoomIn = ZoomIn
             , zoomOut = ZoomOut
             , zoomReset = ZoomReset
+            , setMode = SetMode
+            , saveScene = SaveScene
+            , loadScene = LoadScene
             }
         , div
             [ style "flex" "1"
@@ -120,3 +127,25 @@ viewPanelOverlay model =
                         , style "color" "#7a7a8e"
                         ]
                         [ text "Select a body first." ]
+
+        ConstraintPanel ->
+            viewConstraintPanel
+                model.ui.linkCreation
+                model.links
+                model.bodies
+                StartLinkCreation
+                DeleteLink
+                CancelLinkCreation
+                (TogglePanel ConstraintPanel)
+
+        MixerPanel ->
+            viewMixerPanel
+                model.mixer
+                MixerUpdate
+                (TogglePanel MixerPanel)
+
+        WorldPanel ->
+            viewWorldPanel
+                model.constraints
+                AdjustWorld
+                (TogglePanel WorldPanel)

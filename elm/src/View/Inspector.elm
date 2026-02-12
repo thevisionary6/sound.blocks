@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Material
 import Model exposing (..)
+import Physics.Resonance
 
 
 viewInspector : Model -> Html msg
@@ -72,6 +73,7 @@ viewBodyDetails body =
       else
         viewProp "Tags" (String.join ", " body.tags)
     ]
+        ++ pipeProperties body
 
 
 viewProp : String -> String -> Html msg
@@ -90,6 +92,47 @@ shapeDescription shape =
 
         Rect { w, h } ->
             "Rect (" ++ String.fromInt (round w) ++ "x" ++ String.fromInt (round h) ++ ")"
+
+        Pipe { length, diameter } ->
+            "Pipe (" ++ String.fromInt (round length) ++ "x" ++ String.fromInt (round diameter) ++ ")"
+
+        Poly { points } ->
+            "Polygon (" ++ String.fromInt (List.length points) ++ " sides)"
+
+
+pipeProperties : Body -> List (Html msg)
+pipeProperties body =
+    case body.shape of
+        Pipe { length, diameter, openEnds, holes } ->
+            let
+                freq =
+                    Physics.Resonance.pipeResonantFreq length openEnds holes
+
+                ( leftOpen, rightOpen ) =
+                    openEnds
+
+                endsStr =
+                    (if leftOpen then
+                        "open"
+
+                     else
+                        "closed"
+                    )
+                        ++ " / "
+                        ++ (if rightOpen then
+                                "open"
+
+                            else
+                                "closed"
+                           )
+            in
+            [ viewProp "Ends" endsStr
+            , viewProp "Holes" (String.fromInt (List.length holes))
+            , viewProp "Freq" (floatToStr 1 freq ++ " Hz")
+            ]
+
+        _ ->
+            []
 
 
 floatToStr : Int -> Float -> String
