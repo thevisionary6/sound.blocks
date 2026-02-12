@@ -4,8 +4,6 @@ import Browser.Events
 import Dict
 import History
 import Json.Decode as Decode
-import Json.Decode as JD
-import Json.Encode as JE
 import Material
 import Mixer exposing (MixerMsg(..), updateMixer)
 import Model exposing (..)
@@ -506,7 +504,7 @@ update msg model =
             )
 
         SceneLoaded jsonStr ->
-            case JD.decodeString Serialization.decodeScene jsonStr of
+            case Decode.decodeString Serialization.decodeScene jsonStr of
                 Ok scene ->
                     ( announce
                         ("Scene loaded. "
