@@ -6692,6 +6692,9 @@ var $author$project$Update$applyPropertyChange = F2(
 					{aB: newBodies}));
 		}
 	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var $author$project$Update$applyWorldChange = F2(
 	function (change, model) {
 		var c = model.bC;
@@ -6704,7 +6707,10 @@ var $author$project$Update$applyWorldChange = F2(
 						bC: _Utils_update(
 							c,
 							{
-								aU: {a: c.aU.a + d, b: c.aU.b}
+								aU: {
+									a: A3($elm$core$Basics$clamp, -1000, 1000, c.aU.a + d),
+									b: c.aU.b
+								}
 							})
 					});
 			case 1:
@@ -6715,7 +6721,10 @@ var $author$project$Update$applyWorldChange = F2(
 						bC: _Utils_update(
 							c,
 							{
-								aU: {a: c.aU.a, b: c.aU.b + d}
+								aU: {
+									a: c.aU.a,
+									b: A3($elm$core$Basics$clamp, -1000, 1000, c.aU.b + d)
+								}
 							})
 					});
 			case 2:
@@ -6755,9 +6764,6 @@ var $author$project$Update$applyWorldChange = F2(
 	});
 var $author$project$Model$bodyLabel = function (body) {
 	return body.K.n;
-};
-var $elm$core$Basics$negate = function (n) {
-	return -n;
 };
 var $author$project$Ports$audioEvent = _Platform_outgoingPort('audioEvent', $elm$core$Basics$identity);
 var $elm$json$Json$Encode$float = _Json_wrap;
@@ -8415,8 +8421,10 @@ var $author$project$Update$handlePointerMove = F3(
 			case 1:
 				var id = _v0.a;
 				var lastPos = _v0.b;
+				var flingScale = model.bC.bk;
 				var dy = (cy - lastPos.b) / model.aG.ai;
 				var dx = (cx - lastPos.a) / model.aG.ai;
+				var dragVel = {a: dx * flingScale, b: dy * flingScale};
 				var newBodies = A3(
 					$elm$core$Dict$update,
 					id,
@@ -8426,7 +8434,7 @@ var $author$project$Update$handlePointerMove = F3(
 								body,
 								{
 									F: {a: body.F.a + dx, b: body.F.b + dy},
-									ae: $author$project$Model$vecZero
+									ae: dragVel
 								});
 						}),
 					model.aB);
@@ -8526,23 +8534,11 @@ var $author$project$Physics$Resonance$pipeResonantFreq = F3(
 		if (effLen < 1) {
 			return 1000;
 		} else {
-			_v0$2:
-			while (true) {
-				if (openEnds.a) {
-					if (openEnds.b) {
-						return $author$project$Physics$Resonance$speedOfSound / (2 * effLen);
-					} else {
-						break _v0$2;
-					}
-				} else {
-					if (!openEnds.b) {
-						return $author$project$Physics$Resonance$speedOfSound / (2 * effLen);
-					} else {
-						break _v0$2;
-					}
-				}
+			if (openEnds.a && openEnds.b) {
+				return $author$project$Physics$Resonance$speedOfSound / (2 * effLen);
+			} else {
+				return $author$project$Physics$Resonance$speedOfSound / (4 * effLen);
 			}
-			return $author$project$Physics$Resonance$speedOfSound / (4 * effLen);
 		}
 	});
 var $author$project$History$redo = F2(
@@ -9423,6 +9419,7 @@ var $author$project$Physics$ConstraintSolver$solveString = F4(
 	});
 var $author$project$Physics$ConstraintSolver$solveWeld = F4(
 	function (offset, a, b, bodies) {
+		var totalMass = a.Y + b.Y;
 		var targetPos = A2($author$project$Model$vecAdd, a.F, offset);
 		var invB = 1 / b.Y;
 		var invA = 1 / a.Y;
@@ -9430,7 +9427,11 @@ var $author$project$Physics$ConstraintSolver$solveWeld = F4(
 		var correction = A2($author$project$Model$vecSub, targetPos, b.F);
 		var corrB = A2($author$project$Model$vecScale, invB / invSum, correction);
 		var corrA = A2($author$project$Model$vecScale, -(invA / invSum), correction);
-		var avgVel = {a: ((a.ae.a * a.Y) + (b.ae.a * b.Y)) / (a.Y + b.Y), b: ((a.ae.b * a.Y) + (b.ae.b * b.Y)) / (a.Y + b.Y)};
+		var blend = 0.25;
+		var avgVel = {a: ((a.ae.a * a.Y) + (b.ae.a * b.Y)) / totalMass, b: ((a.ae.b * a.Y) + (b.ae.b * b.Y)) / totalMass};
+		var blendVel = function (v) {
+			return {a: v.a + ((avgVel.a - v.a) * blend), b: v.b + ((avgVel.b - v.b) * blend)};
+		};
 		return A3(
 			$elm$core$Dict$insert,
 			b.N,
@@ -9438,7 +9439,7 @@ var $author$project$Physics$ConstraintSolver$solveWeld = F4(
 				b,
 				{
 					F: A2($author$project$Model$vecAdd, b.F, corrB),
-					ae: avgVel
+					ae: blendVel(b.ae)
 				}),
 			A3(
 				$elm$core$Dict$insert,
@@ -9447,7 +9448,7 @@ var $author$project$Physics$ConstraintSolver$solveWeld = F4(
 					a,
 					{
 						F: A2($author$project$Model$vecAdd, a.F, corrA),
-						ae: avgVel
+						ae: blendVel(a.ae)
 					}),
 				bodies));
 	});
@@ -9510,8 +9511,19 @@ var $author$project$Physics$ConstraintSolver$solve = F3(
 		var linkList = $elm$core$Dict$values(linkDict);
 		return $elm$core$List$isEmpty(linkList) ? bodies : A4($author$project$Physics$ConstraintSolver$solveIterations, 4, linkList, dt, bodies);
 	});
-var $author$project$Physics$Energy$transferLink = F4(
-	function (rate, _v0, link, bodies) {
+var $author$project$Physics$Energy$addDelta = F3(
+	function (id, val, deltas) {
+		return A3(
+			$elm$core$Dict$update,
+			id,
+			function (existing) {
+				return $elm$core$Maybe$Just(
+					A2($elm$core$Maybe$withDefault, 0, existing) + val);
+			},
+			deltas);
+	});
+var $author$project$Physics$Energy$collectTransfer = F5(
+	function (rate, bodies, _v0, link, deltas) {
 		var _v1 = _Utils_Tuple2(
 			A2($elm$core$Dict$get, link.bw, bodies),
 			A2($elm$core$Dict$get, link.bx, bodies));
@@ -9520,30 +9532,43 @@ var $author$project$Physics$Energy$transferLink = F4(
 			var b = _v1.b.a;
 			var diff = a.M - b.M;
 			var transfer = (diff * rate) * 0.5;
-			return ($elm$core$Basics$abs(transfer) < 0.005) ? bodies : A3(
-				$elm$core$Dict$insert,
+			return ($elm$core$Basics$abs(transfer) < 0.005) ? deltas : A3(
+				$author$project$Physics$Energy$addDelta,
 				b.N,
-				_Utils_update(
-					b,
-					{M: b.M + transfer}),
-				A3(
-					$elm$core$Dict$insert,
-					a.N,
-					_Utils_update(
-						a,
-						{M: a.M - transfer}),
-					bodies));
+				transfer,
+				A3($author$project$Physics$Energy$addDelta, a.N, -transfer, deltas));
 		} else {
-			return bodies;
+			return deltas;
 		}
 	});
 var $author$project$Physics$Energy$transferEnergyThroughLinks = F3(
 	function (rate, linkDict, bodies) {
-		return (rate < 0.001) ? bodies : A3(
-			$elm$core$Dict$foldl,
-			$author$project$Physics$Energy$transferLink(rate),
-			bodies,
-			linkDict);
+		if (rate < 0.001) {
+			return bodies;
+		} else {
+			var deltas = A3(
+				$elm$core$Dict$foldl,
+				A2($author$project$Physics$Energy$collectTransfer, rate, bodies),
+				$elm$core$Dict$empty,
+				linkDict);
+			return A2(
+				$elm$core$Dict$map,
+				F2(
+					function (id, body) {
+						var _v0 = A2($elm$core$Dict$get, id, deltas);
+						if (!_v0.$) {
+							var d = _v0.a;
+							return _Utils_update(
+								body,
+								{
+									M: A2($elm$core$Basics$max, 0, body.M + d)
+								});
+						} else {
+							return body;
+						}
+					}),
+				bodies);
+		}
 	});
 var $author$project$Physics$Step$step = F5(
 	function (constraints, bounds, stepCount, links, bodies) {
@@ -9680,12 +9705,12 @@ var $author$project$Mixer$updateMixer = F2(
 	});
 var $author$project$Update$handleDrillClick = F2(
 	function (id, model) {
-		var _v22 = A2($elm$core$Dict$get, id, model.aB);
-		if (!_v22.$) {
-			var body = _v22.a;
-			var _v23 = body.P;
-			if (_v23.$ === 2) {
-				var pipe = _v23.a;
+		var _v23 = A2($elm$core$Dict$get, id, model.aB);
+		if (!_v23.$) {
+			var body = _v23.a;
+			var _v24 = body.P;
+			if (_v24.$ === 2) {
+				var pipe = _v24.a;
 				var existingCount = $elm$core$List$length(pipe.bJ);
 				var newHolePos = (existingCount + 1) / (existingCount + 2);
 				return A2(
@@ -9833,8 +9858,8 @@ var $author$project$Update$handleNonModifierKey = F2(
 			case '0':
 				return A2($author$project$Update$update, $author$project$Update$ZoomReset, model);
 			default:
-				var _v21 = model.ah.a1;
-				switch (_v21) {
+				var _v22 = model.ah.a1;
+				switch (_v22) {
 					case 0:
 						return _Utils_Tuple2(
 							A2($author$project$Update$handleDrawKey, key, model),
@@ -9864,14 +9889,14 @@ var $author$project$Update$handleNonModifierKey = F2(
 	});
 var $author$project$Update$handleSvgMsg = F2(
 	function (svgMsg, model) {
-		var _v19 = model.ah.bO;
-		switch (_v19.$) {
+		var _v20 = model.ah.bO;
+		switch (_v20.$) {
 			case 1:
-				var kind = _v19.a;
+				var kind = _v20.a;
 				return A3($author$project$Update$handleLinkPick, svgMsg, kind, model);
 			case 2:
-				var kind = _v19.a;
-				var bodyA = _v19.b;
+				var kind = _v20.a;
+				var bodyA = _v20.b;
 				return A4($author$project$Update$handleLinkPickSecond, svgMsg, kind, bodyA, model);
 			default:
 				return A2($author$project$Update$handleSvgMsgNormal, svgMsg, model);
@@ -9882,15 +9907,15 @@ var $author$project$Update$handleSvgMsgNormal = F2(
 		switch (svgMsg.$) {
 			case 0:
 				var id = svgMsg.a;
-				var _v15 = model.ah.a1;
-				if (_v15 === 5) {
+				var _v16 = model.ah.a1;
+				if (_v16 === 5) {
 					return A2($author$project$Update$handleDrillClick, id, model);
 				} else {
 					var ui = model.ah;
 					var bodyName = function () {
-						var _v16 = A2($elm$core$Dict$get, id, model.aB);
-						if (!_v16.$) {
-							var body = _v16.a;
+						var _v17 = A2($elm$core$Dict$get, id, model.aB);
+						if (!_v17.$) {
+							var body = _v17.a;
 							return $author$project$Model$bodyLabel(body) + ' selected.';
 						} else {
 							return 'Body selected.';
@@ -9916,8 +9941,8 @@ var $author$project$Update$handleSvgMsgNormal = F2(
 				var id = svgMsg.a;
 				var cx = svgMsg.b;
 				var cy = svgMsg.c;
-				var _v17 = model.ah.a1;
-				switch (_v17) {
+				var _v18 = model.ah.a1;
+				switch (_v18) {
 					case 4:
 						return A2(
 							$author$project$Update$update,
@@ -9949,8 +9974,8 @@ var $author$project$Update$handleSvgMsgNormal = F2(
 				var oy = svgMsg.b;
 				var cx = svgMsg.c;
 				var cy = svgMsg.d;
-				var _v18 = model.ah.a1;
-				if (!_v18) {
+				var _v19 = model.ah.a1;
+				if (!_v19) {
 					var worldPos = A2(
 						$author$project$Model$screenToWorld,
 						model.aG,
@@ -10470,6 +10495,16 @@ var $author$project$Update$update = F2(
 				var _v13 = A2($elm$json$Json$Decode$decodeString, $author$project$Serialization$decodeScene, jsonStr);
 				if (!_v13.$) {
 					var scene = _v13.a;
+					var ui = model.ah;
+					var stopBreathCmd = function () {
+						var _v14 = ui.aF;
+						if (!_v14.$) {
+							return $author$project$Ports$sendBreathEvent(
+								{br: 'stop', by: -1, bH: 0, Z: '', a: 0});
+						} else {
+							return $elm$core$Platform$Cmd$none;
+						}
+					}();
 					return _Utils_Tuple2(
 						A2(
 							$author$project$Model$announce,
@@ -10477,8 +10512,27 @@ var $author$project$Update$update = F2(
 								$elm$core$Dict$size(scene.aB)) + ' bodies.'),
 							_Utils_update(
 								model,
-								{aB: scene.aB, aE: scene.aE, aG: scene.aG, bC: scene.bC, aX: $author$project$History$empty, bP: scene.bP, bV: scene.bV, aq: scene.aq, ar: scene.ar})),
-						$author$project$Update$sendMixerState(scene.bV));
+								{
+									aB: scene.aB,
+									aE: scene.aE,
+									aG: scene.aG,
+									bC: scene.bC,
+									aX: $author$project$History$empty,
+									bP: scene.bP,
+									bV: scene.bV,
+									aq: scene.aq,
+									ar: scene.ar,
+									bg: {aS: model.bg.aS, be: false, bh: 0},
+									ah: _Utils_update(
+										ui,
+										{aF: $elm$core$Maybe$Nothing, b8: $elm$core$Maybe$Nothing})
+								})),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									$author$project$Update$sendMixerState(scene.bV),
+									stopBreathCmd
+								])));
 				} else {
 					return _Utils_Tuple2(
 						A2($author$project$Model$announce, 'Failed to load scene: invalid format.', model),

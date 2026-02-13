@@ -34,9 +34,3 @@ svg rect:focus-visible {
 button:hover {
   filter: brightness(1.2);
 }
-
-/* Selection ring animation */
-@keyframes selectionPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.9; }
-}

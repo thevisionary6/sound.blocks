@@ -178,12 +178,23 @@ solveWeld offset a b bodies =
         corrB =
             vecScale (invB / invSum) correction
 
-        -- Share velocities (weighted average)
+        -- Blend velocities toward weighted average (25% per iteration to avoid jitter)
+        totalMass =
+            a.mass + b.mass
+
         avgVel =
-            { x = (a.vel.x * a.mass + b.vel.x * b.mass) / (a.mass + b.mass)
-            , y = (a.vel.y * a.mass + b.vel.y * b.mass) / (a.mass + b.mass)
+            { x = (a.vel.x * a.mass + b.vel.x * b.mass) / totalMass
+            , y = (a.vel.y * a.mass + b.vel.y * b.mass) / totalMass
+            }
+
+        blend =
+            0.25
+
+        blendVel v =
+            { x = v.x + (avgVel.x - v.x) * blend
+            , y = v.y + (avgVel.y - v.y) * blend
             }
     in
     bodies
-        |> Dict.insert a.id { a | pos = vecAdd a.pos corrA, vel = avgVel }
-        |> Dict.insert b.id { b | pos = vecAdd b.pos corrB, vel = avgVel }
+        |> Dict.insert a.id { a | pos = vecAdd a.pos corrA, vel = blendVel a.vel }
+        |> Dict.insert b.id { b | pos = vecAdd b.pos corrB, vel = blendVel b.vel }

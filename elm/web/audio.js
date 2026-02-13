@@ -212,67 +212,78 @@
       ctx.resume();
     }
   }
-  document.addEventListener("click", resumeOnInteraction, { once: false });
-  document.addEventListener("keydown", resumeOnInteraction, { once: false });
+  document.addEventListener("click", resumeOnInteraction, { once: true });
+  document.addEventListener("keydown", resumeOnInteraction, { once: true });
 
   // Play a material-aware collision sound
   function playCollisionSound(event) {
     if (!initAudio()) return;
     if (ctx.state === "suspended") return;
 
-    var energy = event.energy || 1;
-    var x = event.x || 0;
-    var worldWidth = 800;
+    try {
+      var energy = event.energy || 1;
+      var x = event.x || 0;
+      var worldWidth = 800;
 
-    // Get material profiles for both colliders
-    var profA = getProfile(event.materialA);
-    var profB = getProfile(event.materialB);
+      // Get material profiles for both colliders
+      var profA = getProfile(event.materialA);
+      var profB = getProfile(event.materialB);
 
-    // Blend the two material profiles
-    var oscType = profA.baseFreq >= profB.baseFreq ? profA.oscType : profB.oscType;
-    var baseFreq = (profA.baseFreq + profB.baseFreq) / 2;
-    var decay = (profA.decay + profB.decay) / 2;
-    var noiseAmt = Math.max(profA.noise, profB.noise);
+      // Blend the two material profiles
+      var oscType = profA.baseFreq >= profB.baseFreq ? profA.oscType : profB.oscType;
+      var baseFreq = (profA.baseFreq + profB.baseFreq) / 2;
+      var decay = (profA.decay + profB.decay) / 2;
+      var noiseAmt = Math.max(profA.noise, profB.noise);
 
-    // Scale volume by energy (clamped)
-    var volume = Math.min(1.0, Math.max(0.05, energy / 50));
+      // Scale volume by energy (clamped)
+      var volume = Math.min(1.0, Math.max(0.05, energy / 50));
 
-    // Frequency modulated by energy: higher energy = higher pitch
-    var freq = baseFreq + Math.min(energy * 4, 300);
+      // Frequency modulated by energy: higher energy = higher pitch
+      var freq = baseFreq + Math.min(energy * 4, 300);
 
-    // Stereo panning based on x position (-1 to 1)
-    var pan = ((x / worldWidth) * 2) - 1;
-    pan = Math.max(-1, Math.min(1, pan));
+      // Stereo panning based on x position (-1 to 1)
+      var pan = ((x / worldWidth) * 2) - 1;
+      pan = Math.max(-1, Math.min(1, pan));
 
-    var now = ctx.currentTime;
+      var now = ctx.currentTime;
 
-    // Oscillator: short burst with material-specific type
-    var osc = ctx.createOscillator();
-    osc.type = oscType;
-    osc.frequency.setValueAtTime(freq, now);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * 0.3), now + decay);
+      // Oscillator: short burst with material-specific type
+      var osc = ctx.createOscillator();
+      osc.type = oscType;
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * 0.3), now + decay);
 
-    // Envelope with material-specific decay
-    var env = ctx.createGain();
-    env.gain.setValueAtTime(volume, now);
-    env.gain.exponentialRampToValueAtTime(0.001, now + decay);
+      // Envelope with material-specific decay
+      var env = ctx.createGain();
+      env.gain.setValueAtTime(volume, now);
+      env.gain.exponentialRampToValueAtTime(0.001, now + decay);
 
-    // Panner
-    var panner = ctx.createStereoPanner();
-    panner.pan.setValueAtTime(pan, now);
+      // Panner
+      var panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(pan, now);
 
-    // Connect chain: osc -> env -> panner -> dryGain (effects input)
-    osc.connect(env);
-    env.connect(panner);
-    panner.connect(dryGain);
+      // Connect chain: osc -> env -> panner -> dryGain (effects input)
+      osc.connect(env);
+      env.connect(panner);
+      panner.connect(dryGain);
 
-    osc.start(now);
-    osc.stop(now + decay + 0.05);
+      osc.start(now);
+      osc.stop(now + decay + 0.05);
 
-    // Noise burst for materials with noise component or high-energy collisions
-    var effectiveNoise = noiseAmt + (energy > 15 ? 0.3 : 0);
-    if (effectiveNoise > 0.05) {
-      playNoiseBurst(volume * effectiveNoise, pan, now, decay);
+      // Disconnect nodes after playback to free resources
+      osc.onended = function () {
+        osc.disconnect();
+        env.disconnect();
+        panner.disconnect();
+      };
+
+      // Noise burst for materials with noise component or high-energy collisions
+      var effectiveNoise = noiseAmt + (energy > 15 ? 0.3 : 0);
+      if (effectiveNoise > 0.05) {
+        playNoiseBurst(volume * effectiveNoise, pan, now, decay);
+      }
+    } catch (e) {
+      // Gracefully handle audio node creation failures
     }
   }
 
@@ -310,20 +321,29 @@
     if (!initAudio()) return;
     if (ctx.state === "suspended") return;
 
-    var now = ctx.currentTime;
-    var osc = ctx.createOscillator();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(600, now);
-    osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+    try {
+      var now = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
 
-    var env = ctx.createGain();
-    env.gain.setValueAtTime(0.15, now);
-    env.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      var env = ctx.createGain();
+      env.gain.setValueAtTime(0.15, now);
+      env.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
-    osc.connect(env);
-    env.connect(dryGain);
-    osc.start(now);
-    osc.stop(now + 0.08);
+      osc.connect(env);
+      env.connect(dryGain);
+      osc.start(now);
+      osc.stop(now + 0.08);
+
+      osc.onended = function () {
+        osc.disconnect();
+        env.disconnect();
+      };
+    } catch (e) {
+      // Gracefully handle audio node creation failures
+    }
   }
 
   // Dispatch audio events from Elm ports

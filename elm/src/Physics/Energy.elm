@@ -30,11 +30,25 @@ transferEnergyThroughLinks rate linkDict bodies =
         bodies
 
     else
-        Dict.foldl (transferLink rate) bodies linkDict
+        let
+            -- Collect all transfer deltas from the INITIAL state (no stale refs)
+            deltas =
+                Dict.foldl (collectTransfer rate bodies) Dict.empty linkDict
+        in
+        Dict.map
+            (\id body ->
+                case Dict.get id deltas of
+                    Just d ->
+                        { body | energy = max 0 (body.energy + d) }
+
+                    Nothing ->
+                        body
+            )
+            bodies
 
 
-transferLink : Float -> LinkId -> Link -> Dict BodyId Body -> Dict BodyId Body
-transferLink rate _ link bodies =
+collectTransfer : Float -> Dict BodyId Body -> LinkId -> Link -> Dict BodyId Float -> Dict BodyId Float
+collectTransfer rate bodies _ link deltas =
     case ( Dict.get link.bodyA bodies, Dict.get link.bodyB bodies ) of
         ( Just a, Just b ) ->
             let
@@ -45,15 +59,20 @@ transferLink rate _ link bodies =
                     diff * rate * 0.5
             in
             if abs transfer < 0.005 then
-                bodies
+                deltas
 
             else
-                bodies
-                    |> Dict.insert a.id { a | energy = a.energy - transfer }
-                    |> Dict.insert b.id { b | energy = b.energy + transfer }
+                deltas
+                    |> addDelta a.id -transfer
+                    |> addDelta b.id transfer
 
         _ ->
-            bodies
+            deltas
+
+
+addDelta : BodyId -> Float -> Dict BodyId Float -> Dict BodyId Float
+addDelta id val deltas =
+    Dict.update id (\existing -> Just (Maybe.withDefault 0 existing + val)) deltas
 
 
 bodyKineticEnergy : Body -> Float

@@ -20,9 +20,6 @@ pipeResonantFreq length openEnds holes =
             ( True, True ) ->
                 speedOfSound / (2 * effLen)
 
-            ( False, False ) ->
-                speedOfSound / (2 * effLen)
-
             _ ->
                 speedOfSound / (4 * effLen)
 

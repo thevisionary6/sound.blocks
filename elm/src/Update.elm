@@ -506,6 +506,24 @@ update msg model =
         SceneLoaded jsonStr ->
             case Decode.decodeString Serialization.decodeScene jsonStr of
                 Ok scene ->
+                    let
+                        ui =
+                            model.ui
+
+                        stopBreathCmd =
+                            case ui.breathTarget of
+                                Just _ ->
+                                    Ports.sendBreathEvent
+                                        { action = "stop"
+                                        , frequency = 0
+                                        , bodyId = -1
+                                        , x = 0
+                                        , materialName = ""
+                                        }
+
+                                Nothing ->
+                                    Cmd.none
+                    in
                     ( announce
                         ("Scene loaded. "
                             ++ String.fromInt (Dict.size scene.bodies)
@@ -521,8 +539,10 @@ update msg model =
                             , camera = scene.camera
                             , bounds = scene.bounds
                             , history = History.empty
+                            , sim = { running = False, fixedDt = model.sim.fixedDt, stepCount = 0 }
+                            , ui = { ui | breathTarget = Nothing, selected = Nothing }
                         }
-                    , sendMixerState scene.mixer
+                    , Cmd.batch [ sendMixerState scene.mixer, stopBreathCmd ]
                     )
 
                 Err _ ->
@@ -756,13 +776,20 @@ handlePointerMove cx cy model =
                 dy =
                     (cy - lastPos.y) / model.camera.zoom
 
+                -- Scale delta into a fling velocity (pixels per frame at 30Hz)
+                flingScale =
+                    toFloat model.constraints.tickRateHz
+
+                dragVel =
+                    { x = dx * flingScale, y = dy * flingScale }
+
                 newBodies =
                     Dict.update id
                         (Maybe.map
                             (\body ->
                                 { body
                                     | pos = { x = body.pos.x + dx, y = body.pos.y + dy }
-                                    , vel = vecZero
+                                    , vel = dragVel
                                 }
                             )
                         )
@@ -1447,10 +1474,10 @@ applyWorldChange change model =
     in
     case change of
         AdjGravityX d ->
-            { model | constraints = { c | gravity = { x = c.gravity.x + d, y = c.gravity.y } } }
+            { model | constraints = { c | gravity = { x = clamp -1000 1000 (c.gravity.x + d), y = c.gravity.y } } }
 
         AdjGravityY d ->
-            { model | constraints = { c | gravity = { x = c.gravity.x, y = c.gravity.y + d } } }
+            { model | constraints = { c | gravity = { x = c.gravity.x, y = clamp -1000 1000 (c.gravity.y + d) } } }
 
         AdjDamping d ->
             { model | constraints = { c | damping = clamp 0.9 1.0 (c.damping + d) } }
